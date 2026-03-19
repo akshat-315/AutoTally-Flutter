@@ -12,11 +12,12 @@ import 'tables/merchants.dart';
 import 'tables/transactions.dart';
 import 'tables/templates.dart';
 import 'tables/app_config.dart';
+import 'tables/merchant_aliases.dart';
 
 part 'database.g.dart';
 
 @DriftDatabase(
-  tables: [Categories, Merchants, Transactions, Templates, AppConfig],
+  tables: [Categories, Merchants, Transactions, Templates, AppConfig, MerchantAliases],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
