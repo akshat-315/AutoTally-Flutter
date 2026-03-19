@@ -1,0 +1,619 @@
+{
+  "HDFCBK": {
+    "bank": "HDFC",
+    "sender_ids": ["HDFCBK", "HDFCBN"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Sent Rs.{amount}\nFrom HDFC Bank A/C *{last4}\nTo {merchant}\nOn {date}\nRef {upi_ref}",
+        "example": "Sent Rs.499.00\nFrom HDFC Bank A/C *1234\nTo SWIGGY\nOn 15-03-26\nRef 403312345678",
+        "source": "python_server"
+      },
+      {
+        "direction": "debit",
+        "type": "UPI_mandate",
+        "pattern": "UPI Mandate:\nSent Rs.{amount}\nfrom HDFC Bank A/c {last4}\nTo {merchant}\n{date}\nRef {upi_ref}",
+        "example": "UPI Mandate:\nSent Rs.199.00\nfrom HDFC Bank A/c 1234\nTo Netflix\n15-03-26\nRef 403312345679",
+        "source": "python_server"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Credit Alert!\nRs.{amount} credited to HDFC Bank A/c XX{last4} on {date} from VPA {vpa} (UPI {upi_ref})",
+        "example": "Credit Alert!\nRs.1500.00 credited to HDFC Bank A/c XX1234 on 15-03-26 from VPA rahul@okhdfcbank (UPI 403312345680)",
+        "source": "python_server"
+      },
+      {
+        "direction": "credit",
+        "type": "NEFT",
+        "pattern": "Update! INR {amount} deposited in HDFC Bank A/c XX{last4} on {date} for NEFT Cr-{merchant}.Avl bal",
+        "example": "Update! INR 25000.00 deposited in HDFC Bank A/c XX1234 on 15-03-26 for NEFT Cr-ACME CORP.Avl bal",
+        "source": "python_server"
+      },
+      {
+        "direction": "debit",
+        "type": "card",
+        "pattern": "Alert! Rs.{amount} spent on HDFC Bank Card XX{last4} at {merchant} on {date}. Avl Lmt",
+        "example": "Alert! Rs.3499.00 spent on HDFC Bank Card XX5678 at AMAZON on 15-03-26. Avl Lmt",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "NEFT",
+        "pattern": "Rs.{amount} debited from HDFC Bank A/c XX{last4} on {date} via NEFT to {merchant}. Avl bal",
+        "example": "Rs.15000.00 debited from HDFC Bank A/c XX1234 on 15-03-26 via NEFT to ACME CORP. Avl bal",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "IMPS",
+        "pattern": "Rs.{amount} debited from HDFC Bank A/c XX{last4} on {date} via IMPS to {merchant}. Avl bal",
+        "example": "Rs.5000.00 debited from HDFC Bank A/c XX1234 on 15-03-26 via IMPS to John Doe. Avl bal",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "ATM",
+        "pattern": "Rs.{amount} withdrawn from HDFC Bank ATM using Card XX{last4} on {date}. Avl bal",
+        "example": "Rs.10000.00 withdrawn from HDFC Bank ATM using Card XX5678 on 15-03-26. Avl bal",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "bill_payment",
+        "pattern": "Rs.{amount} debited from A/c XX{last4} for BillPay/{merchant} via HDFC Bank NetBanking on {date}",
+        "example": "Rs.2480.00 debited from A/c XX1234 for BillPay/Airtel Postpaid via HDFC Bank NetBanking on 15-03-26",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "auto_debit",
+        "pattern": "Rs.{amount} debited from A/c XX{last4} on {date} towards {merchant} auto pay. Avl bal",
+        "example": "Rs.499.00 debited from A/c XX1234 on 15-03-26 towards Netflix auto pay. Avl bal",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "EMI",
+        "pattern": "HDFC Bank Customer, Payment of Rs {amount} was credited to your Debit Card EMI Loan {last4} on {date}",
+        "example": "HDFC Bank Customer, Payment of Rs 1047 was credited to your Debit Card EMI Loan 2593 on 05/MAR/2026",
+        "source": "user_verified",
+        "notes": "EMI repayment credit. Date format: dd/MMM/YYYY"
+      }
+    ]
+  },
+  "ICICIB": {
+    "bank": "ICICI",
+    "sender_ids": ["ICICIB", "ICICIS"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Your A/c XX{last4} is debited with Rs {amount} on {date} (UPI Ref No {upi_ref}). {merchant} credited. Call 18002662 for dispute",
+        "example": "Your A/c XX4567 is debited with Rs 350.00 on 15-03-26 (UPI Ref No 403312345678). SWIGGY credited. Call 18002662 for dispute",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Your A/c XX{last4} is credited with Rs {amount} on {date} (UPI Ref No {upi_ref}). {vpa} debited",
+        "example": "Your A/c XX4567 is credited with Rs 2000.00 on 15-03-26 (UPI Ref No 403312345679). rahul@oksbi debited",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "card",
+        "pattern": "ICICI Bank Acct XX{last4} debited for Rs.{amount} on {date}; {merchant}. Avl Bal Rs",
+        "example": "ICICI Bank Acct XX4567 debited for Rs.1299.00 on 15-03-26; AMAZON. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "NEFT",
+        "pattern": "ICICI Bank Acct XX{last4} credited Rs.{amount} on {date} by {merchant} (NEFT Ref No {upi_ref}). Avl Bal Rs",
+        "example": "ICICI Bank Acct XX4567 credited Rs.50000.00 on 15-03-26 by ACME CORP (NEFT Ref No HDFC0123456789). Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "NEFT",
+        "pattern": "ICICI Bank Acct XX{last4} debited Rs.{amount} on {date} for NEFT to {merchant}. Avl Bal Rs",
+        "example": "ICICI Bank Acct XX4567 debited Rs.15000.00 on 15-03-26 for NEFT to John Doe. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "IMPS",
+        "pattern": "INR {amount} debited from A/c XX{last4} on {date}. IMPS to {merchant}. Avl Bal- INR",
+        "example": "INR 5000.00 debited from A/c XX4567 on 15-03-26. IMPS to 9876543210. Avl Bal- INR",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "auto_debit",
+        "pattern": "Rs {amount} debited from your ICICI Bank A/c XX{last4} on {date} for {merchant} mandate. If not done by you call 18002662",
+        "example": "Rs 599.00 debited from your ICICI Bank A/c XX4567 on 15-03-26 for Spotify mandate. If not done by you call 18002662",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "ATM",
+        "pattern": "INR {amount} withdrawn from ATM using ICICI Bank Card XX{last4} on {date}. Avl Bal- INR",
+        "example": "INR 5000.00 withdrawn from ATM using ICICI Bank Card XX5678 on 15-03-26. Avl Bal- INR",
+        "source": "training_data"
+      }
+    ]
+  },
+  "SBIINB": {
+    "bank": "SBI",
+    "sender_ids": ["SBIINB", "SBIBNK", "SBMSMS"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Dear Customer, Your A/C {last4} has a debit by transfer of Rs {amount} on {date} (UPI Ref No {upi_ref}). Your A/C Bal is Rs",
+        "example": "Dear Customer, Your A/C X1234 has a debit by transfer of Rs 499.00 on 15-03-26 (UPI Ref No 403312345678). Your A/C Bal is Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Dear Customer, Your A/C {last4} has a credit by transfer of Rs {amount} on {date} (UPI Ref No {upi_ref}). Your A/C Bal is Rs",
+        "example": "Dear Customer, Your A/C X1234 has a credit by transfer of Rs 2000.00 on 15-03-26 (UPI Ref No 403312345679). Your A/C Bal is Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "general",
+        "pattern": "Your A/c no.XX{last4} is debited for Rs {amount} on {date} and A/c no.XXXXXXXXX credited (IMPS Ref No {upi_ref})",
+        "example": "Your A/c no.XX1234 is debited for Rs 5000.00 on 15-03-26 and A/c no.XXXXXXXXX credited (IMPS Ref No 403312345680)",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "NEFT",
+        "pattern": "Dear Customer, Your A/C {last4} has a credit of Rs {amount} on {date} by NEFT from {merchant}. Your A/C Bal is Rs",
+        "example": "Dear Customer, Your A/C X1234 has a credit of Rs 50000.00 on 15-03-26 by NEFT from ACME CORP. Your A/C Bal is Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "ATM",
+        "pattern": "Dear Customer, Rs.{amount} has been debited from your A/c {last4} for ATM/Cash WDL on {date}. Avl Bal Rs",
+        "example": "Dear Customer, Rs.10000.00 has been debited from your A/c X1234 for ATM/Cash WDL on 15-03-26. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "card",
+        "pattern": "Dear Customer,Your A/c {last4} debited INR {amount} on {date} {merchant}. Avl Bal INR",
+        "example": "Dear Customer,Your A/c X1234 debited INR 1500.00 on 15-03-26 POS AMAZON. Avl Bal INR",
+        "source": "training_data"
+      }
+    ]
+  },
+  "AXISBK": {
+    "bank": "Axis",
+    "sender_ids": ["AXISBK", "AXISBN"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Rs.{amount} debited from A/c no. XX{last4} on {date} by UPI ref no {upi_ref}. If not done by you call 18004195959",
+        "example": "Rs.350.00 debited from A/c no. XX8175 on 15-03-26 by UPI ref no 403312345678. If not done by you call 18004195959",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "UPI_alt",
+        "pattern": "Sent Rs.{amount} from Axis Bank A/c XX{last4} to {vpa} on {date}. UPI Ref: {upi_ref}",
+        "example": "Sent Rs.499.00 from Axis Bank A/c XX8175 to swiggy@axisbank on 15-03-26. UPI Ref: 403312345678",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Rs.{amount} credited to your A/c no. XX{last4} on {date} by UPI ref no {upi_ref}. -Axis Bank",
+        "example": "Rs.2000.00 credited to your A/c no. XX8175 on 15-03-26 by UPI ref no 403312345679. -Axis Bank",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "NEFT",
+        "pattern": "Rs.{amount} credited to your A/c no. XX{last4} on {date}. NEFT from {merchant}. Ref no {upi_ref}",
+        "example": "Rs.50000.00 credited to your A/c no. XX8175 on 15-03-26. NEFT from ACME CORP. Ref no HDFC0123456789",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "NEFT",
+        "pattern": "Rs.{amount} debited from A/c no. XX{last4} on {date}. NEFT to {merchant}. Ref no {upi_ref}",
+        "example": "Rs.25000.00 debited from A/c no. XX8175 on 15-03-26. NEFT to ACME CORP. Ref no AXIS0123456789",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "IMPS",
+        "pattern": "Rs.{amount} credited to your A/c XX{last4} on {date}. IMPS from {merchant}. Ref {upi_ref}. Avl Bal Rs",
+        "example": "Rs.5000.00 credited to your A/c XX8175 on 15-03-26. IMPS from John Doe. Ref 403312345680. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "IMPS",
+        "pattern": "Rs.{amount} debited from A/c no. XX{last4} on {date}. IMPS to {merchant}. Ref no {upi_ref}",
+        "example": "Rs.5000.00 debited from A/c no. XX8175 on 15-03-26. IMPS to 9876543210. Ref no 403312345681",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "credit_card",
+        "pattern": "Thank you for using your Axis Bank Credit Card ending {last4} for Rs.{amount} at {merchant} on {date}. Avl limit: Rs",
+        "example": "Thank you for using your Axis Bank Credit Card ending 5678 for Rs.2999.00 at FLIPKART on 15-03-26. Avl limit: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "debit_card",
+        "pattern": "Rs.{amount} spent on your Axis Bank Debit Card ending {last4} at {merchant} on {date}. Avl Bal: Rs",
+        "example": "Rs.1500.00 spent on your Axis Bank Debit Card ending 5678 at AMAZON on 15-03-26. Avl Bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "ATM",
+        "pattern": "Rs.{amount} withdrawn from ATM using Axis Bank Card ending {last4} on {date}. Avl Bal: Rs",
+        "example": "Rs.10000.00 withdrawn from ATM using Axis Bank Card ending 5678 on 15-03-26. Avl Bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "auto_debit",
+        "pattern": "Rs.{amount} debited from A/c no. XX{last4} on {date} towards {merchant} Mandate. Ref {upi_ref}",
+        "example": "Rs.599.00 debited from A/c no. XX8175 on 15-03-26 towards Netflix Mandate. Ref 403312345682",
+        "source": "training_data"
+      }
+    ]
+  },
+  "KOTAKB": {
+    "bank": "Kotak",
+    "sender_ids": ["KOTAKB", "KVBSMS"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Kotak Bank Acc XX{last4} debited by Rs {amount} for VPA {vpa} on {date} Ref No {upi_ref}. Not you? Call 18002740110",
+        "example": "Kotak Bank Acc XX3456 debited by Rs 499.00 for VPA swiggy@axisbank on 15-03-26 Ref No 403312345678. Not you? Call 18002740110",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "UPI_alt",
+        "pattern": "Rs.{amount} debited from your Kotak Bank A/c XX{last4} to VPA {vpa} on {date}. UPI Ref No: {upi_ref}",
+        "example": "Rs.499.00 debited from your Kotak Bank A/c XX3456 to VPA swiggy@axisbank on 15-03-26. UPI Ref No: 403312345678",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Kotak Bank Acc XX{last4} credited with Rs {amount} by VPA {vpa} on {date} Ref No {upi_ref}",
+        "example": "Kotak Bank Acc XX3456 credited with Rs 2000.00 by VPA rahul@oksbi on 15-03-26 Ref No 403312345679",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "NEFT",
+        "pattern": "Rs.{amount} credited to your Kotak Bank A/c XX{last4} on {date}. Info: NEFT-{upi_ref}-{merchant}. Avl bal: Rs",
+        "example": "Rs.50000.00 credited to your Kotak Bank A/c XX3456 on 15-03-26. Info: NEFT-HDFC0123456-ACME CORP. Avl bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "IMPS",
+        "pattern": "Rs.{amount} credited to your Kotak Bank A/c XX{last4} on {date}. Info: IMPS-{upi_ref}-{merchant}. Avl bal: Rs",
+        "example": "Rs.5000.00 credited to your Kotak Bank A/c XX3456 on 15-03-26. Info: IMPS-403312345680-John Doe. Avl bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "IMPS",
+        "pattern": "Rs.{amount} debited from your Kotak Bank A/c XX{last4} on {date} for IMPS to {merchant}. Ref {upi_ref}. Avl Bal: Rs",
+        "example": "Rs.5000.00 debited from your Kotak Bank A/c XX3456 on 15-03-26 for IMPS to John Doe. Ref 403312345681. Avl Bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "credit_card",
+        "pattern": "Rs.{amount} spent on Kotak Credit Card XX{last4} at {merchant} on {date}. Avl limit Rs",
+        "example": "Rs.2999.00 spent on Kotak Credit Card XX5678 at AMAZON on 15-03-26. Avl limit Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "debit_card",
+        "pattern": "Rs.{amount} spent using Kotak Debit Card XX{last4} at {merchant} on {date}. Avl Bal Rs",
+        "example": "Rs.1500.00 spent using Kotak Debit Card XX5678 at FLIPKART on 15-03-26. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "ATM",
+        "pattern": "Rs.{amount} withdrawn from Kotak Bank A/c XX{last4} at ATM on {date}. Avl Bal: Rs",
+        "example": "Rs.10000.00 withdrawn from Kotak Bank A/c XX3456 at ATM on 15-03-26. Avl Bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "auto_debit",
+        "pattern": "Rs.{amount} debited from your Kotak Bank A/c XX{last4} on {date} towards {merchant} (ECS/Mandate). Ref {upi_ref}",
+        "example": "Rs.599.00 debited from your Kotak Bank A/c XX3456 on 15-03-26 towards Netflix (ECS/Mandate). Ref 403312345682",
+        "source": "training_data"
+      }
+    ]
+  },
+  "PNBSMS": {
+    "bank": "PNB",
+    "sender_ids": ["PNBSMS", "PNBJNK", "PABORB"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Dear Customer, your A/c XX{last4} is debited for Rs.{amount} on {date} (UPI Ref No {upi_ref}). If not done by you, call 18001802222 -PNB",
+        "example": "Dear Customer, your A/c XX1234 is debited for Rs.499.00 on 15-03-26 (UPI Ref No 403312345678). If not done by you, call 18001802222 -PNB",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Dear Customer, your A/c XX{last4} is credited with Rs.{amount} on {date} (UPI Ref No {upi_ref}). Avl Bal Rs",
+        "example": "Dear Customer, your A/c XX1234 is credited with Rs.2000.00 on 15-03-26 (UPI Ref No 403312345679). Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "NEFT",
+        "pattern": "Dear Customer, your A/c XX{last4} is credited with Rs.{amount} on {date}. Info: NEFT Cr {merchant} Ref {upi_ref}. Avl Bal Rs",
+        "example": "Dear Customer, your A/c XX1234 is credited with Rs.50000.00 on 15-03-26. Info: NEFT Cr ACME CORP Ref HDFC0123456789. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "NEFT",
+        "pattern": "Dear Customer, your A/c XX{last4} is debited for Rs.{amount} on {date}. Info: NEFT to {merchant}. Ref {upi_ref} -PNB",
+        "example": "Dear Customer, your A/c XX1234 is debited for Rs.15000.00 on 15-03-26. Info: NEFT to John Doe. Ref PNBJ0123456789 -PNB",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "IMPS",
+        "pattern": "Dear Customer, your A/c XX{last4} is credited with Rs.{amount} on {date} by IMPS Ref {upi_ref} from {merchant}. Avl Bal Rs",
+        "example": "Dear Customer, your A/c XX1234 is credited with Rs.5000.00 on 15-03-26 by IMPS Ref 403312345680 from John Doe. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "IMPS",
+        "pattern": "Dear Customer, your A/c XX{last4} is debited for Rs.{amount} on {date} for IMPS to {merchant}. Ref {upi_ref}. Avl Bal Rs",
+        "example": "Dear Customer, your A/c XX1234 is debited for Rs.5000.00 on 15-03-26 for IMPS to 9876543210. Ref 403312345681. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "ATM",
+        "pattern": "Dear Customer, your A/c XX{last4} is debited for Rs.{amount} on {date} for ATM WDL. Avl Bal Rs",
+        "example": "Dear Customer, your A/c XX1234 is debited for Rs.10000.00 on 15-03-26 for ATM WDL. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "card",
+        "pattern": "Dear Customer, your A/c XX{last4} is debited for Rs.{amount} on {date} at {merchant} (Card XX{last4}). Avl Bal Rs",
+        "example": "Dear Customer, your A/c XX1234 is debited for Rs.1500.00 on 15-03-26 at AMAZON (Card XX5678). Avl Bal Rs",
+        "source": "training_data"
+      }
+    ]
+  },
+  "BOBBKN": {
+    "bank": "BOB",
+    "sender_ids": ["BOBBKN", "BOBBNK", "ABORB", "BABORB", "BOBROI"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Your A/c XX{last4} debited by Rs.{amount} on {date} by UPI {upi_ref} to {vpa}. If not done by you call 18005700. -Bank of Baroda",
+        "example": "Your A/c XX7890 debited by Rs.499.00 on 15-03-26 by UPI 403312345678 to swiggy@axl. If not done by you call 18005700. -Bank of Baroda",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Your A/c XX{last4} credited by Rs.{amount} on {date} by UPI {upi_ref} from {vpa}. Avl Bal Rs",
+        "example": "Your A/c XX7890 credited by Rs.2000.00 on 15-03-26 by UPI 403312345679 from rahul@oksbi. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "NEFT",
+        "pattern": "Your A/c XX{last4} credited by Rs.{amount} on {date}. Info: NEFT Cr-{upi_ref}-{merchant}. Avl Bal Rs",
+        "example": "Your A/c XX7890 credited by Rs.50000.00 on 15-03-26. Info: NEFT Cr-HDFC0123456-ACME CORP. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "NEFT",
+        "pattern": "Your A/c XX{last4} debited by Rs.{amount} on {date}. NEFT to {merchant}. Ref {upi_ref}. Avl Bal Rs",
+        "example": "Your A/c XX7890 debited by Rs.15000.00 on 15-03-26. NEFT to ACME CORP. Ref BARB0123456789. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "IMPS",
+        "pattern": "Your A/c XX{last4} credited by Rs.{amount} on {date} by IMPS from {merchant}. Ref {upi_ref}. Avl Bal Rs",
+        "example": "Your A/c XX7890 credited by Rs.5000.00 on 15-03-26 by IMPS from John Doe. Ref 403312345680. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "ATM",
+        "pattern": "Your A/c XX{last4} debited by Rs.{amount} on {date} at ATM. Avl Bal Rs",
+        "example": "Your A/c XX7890 debited by Rs.10000.00 on 15-03-26 at ATM. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "card",
+        "pattern": "Your A/c XX{last4} debited by Rs.{amount} on {date} at POS {merchant}. Avl Bal Rs",
+        "example": "Your A/c XX7890 debited by Rs.1500.00 on 15-03-26 at POS AMAZON. Avl Bal Rs",
+        "source": "training_data"
+      }
+    ]
+  },
+  "INDUSB": {
+    "bank": "IndusInd",
+    "sender_ids": ["INDUSB", "INDBNK"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Rs {amount} debited from IndusInd Bank A/c XX{last4} on {date} to VPA {vpa}. UPI Ref {upi_ref}. Call 18602677777 if not you",
+        "example": "Rs 499.00 debited from IndusInd Bank A/c XX2345 on 15-03-26 to VPA swiggy@axisbank. UPI Ref 403312345678. Call 18602677777 if not you",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Rs {amount} credited to IndusInd Bank A/c XX{last4} on {date} from VPA {vpa}. UPI Ref {upi_ref}",
+        "example": "Rs 2000.00 credited to IndusInd Bank A/c XX2345 on 15-03-26 from VPA rahul@oksbi. UPI Ref 403312345679",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "NEFT",
+        "pattern": "Rs {amount} credited to your IndusInd Bank A/c XX{last4} on {date}. NEFT from {merchant}. Ref {upi_ref}. Avl Bal: Rs",
+        "example": "Rs 50000.00 credited to your IndusInd Bank A/c XX2345 on 15-03-26. NEFT from ACME CORP. Ref HDFC0123456789. Avl Bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "IMPS",
+        "pattern": "Rs {amount} credited to your IndusInd Bank A/c XX{last4} on {date} through IMPS from {merchant}. Ref {upi_ref}. Avl Bal: Rs",
+        "example": "Rs 5000.00 credited to your IndusInd Bank A/c XX2345 on 15-03-26 through IMPS from John Doe. Ref 403312345680. Avl Bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "IMPS",
+        "pattern": "Rs {amount} debited from IndusInd Bank A/c XX{last4} on {date} for IMPS to {merchant}. Ref {upi_ref}. Avl Bal: Rs",
+        "example": "Rs 5000.00 debited from IndusInd Bank A/c XX2345 on 15-03-26 for IMPS to 9876543210. Ref 403312345681. Avl Bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "credit_card",
+        "pattern": "Rs.{amount} spent on your IndusInd Bank Credit Card XX{last4} at {merchant} on {date}. Avl limit: Rs",
+        "example": "Rs.4999.00 spent on your IndusInd Bank Credit Card XX5678 at AMAZON on 15-03-26. Avl limit: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "ATM",
+        "pattern": "Rs {amount} debited from IndusInd Bank A/c XX{last4} on {date} at ATM. Avl Bal: Rs",
+        "example": "Rs 10000.00 debited from IndusInd Bank A/c XX2345 on 15-03-26 at ATM. Avl Bal: Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "debit",
+        "type": "auto_debit",
+        "pattern": "Rs {amount} debited from IndusInd Bank A/c XX{last4} on {date} towards {merchant} Mandate/SI. Ref {upi_ref}",
+        "example": "Rs 599.00 debited from IndusInd Bank A/c XX2345 on 15-03-26 towards Netflix Mandate/SI. Ref 403312345682",
+        "source": "training_data"
+      }
+    ]
+  },
+  "IDFCFB": {
+    "bank": "IDFC",
+    "sender_ids": ["IDFCFB", "IDFCBK"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Rs.{amount} sent from IDFC FIRST Bank A/c XX{last4} to {vpa} on {date}. UPI Ref: {upi_ref}",
+        "example": "Rs.499.00 sent from IDFC FIRST Bank A/c XX6789 to swiggy@axl on 15-03-26. UPI Ref: 403312345678",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Rs.{amount} received in IDFC FIRST Bank A/c XX{last4} from {vpa} on {date}. UPI Ref: {upi_ref}",
+        "example": "Rs.2000.00 received in IDFC FIRST Bank A/c XX6789 from rahul@oksbi on 15-03-26. UPI Ref: 403312345679",
+        "source": "training_data"
+      }
+    ]
+  },
+  "YESBK0": {
+    "bank": "Yes Bank",
+    "sender_ids": ["YESBK0", "YESBKL"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Rs.{amount} debited from A/c {last4} via UPI to {merchant} on {date}. Ref {upi_ref}. Avl Bal Rs",
+        "example": "Rs.499.00 debited from A/c XX3456 via UPI to SWIGGY on 15-03-26. Ref 403312345678. Avl Bal Rs",
+        "source": "training_data"
+      },
+      {
+        "direction": "credit",
+        "type": "UPI",
+        "pattern": "Rs.{amount} credited to A/c {last4} via UPI from {vpa} on {date}. Ref {upi_ref}. Avl Bal Rs",
+        "example": "Rs.2000.00 credited to A/c XX3456 via UPI from rahul@oksbi on 15-03-26. Ref 403312345679. Avl Bal Rs",
+        "source": "training_data"
+      }
+    ]
+  },
+  "UNIONB": {
+    "bank": "Union Bank",
+    "sender_ids": ["UNIONB", "UNIBNK"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "mobile_banking",
+        "pattern": "A/c *{last4} Debited for Rs:{amount} on {date} by Mob Bk ref no {upi_ref} Avl Bal Rs",
+        "example": "A/c *7028 Debited for Rs:1700.00 on 07-03-2026 17:37:36 by Mob Bk ref no 119650728051 Avl Bal Rs:6891.75.If not you, Call 1800222243 -Union Bank of India",
+        "source": "user_verified",
+        "notes": "No merchant/VPA info in SMS. Transaction needs manual categorization."
+      }
+    ]
+  },
+  "FEDERAL": {
+    "bank": "Federal",
+    "sender_ids": ["FEDBNK", "FEDSMS"],
+    "templates": [
+      {
+        "direction": "debit",
+        "type": "UPI",
+        "pattern": "Rs.{amount} debited from your Federal Bank A/c XX{last4} on {date} to {vpa}. UPI Ref {upi_ref}",
+        "example": "Rs.499.00 debited from your Federal Bank A/c XX4321 on 15-03-26 to swiggy@axl. UPI Ref 403312345678",
+        "source": "training_data"
+      }
+    ]
+  },
+  "_metadata": {
+    "total_banks": 11,
+    "total_templates": 80,
+    "sources": {
+      "python_server": "Verified patterns from existing AutoTally Python server",
+      "web_verified": "Found in real user posts/screenshots online",
+      "training_data": "From training knowledge of Indian bank SMS formats - NEEDS VERIFICATION"
+    },
+    "sender_id_reference": "https://gist.github.com/abhishekjnvk/ad596df86a22291ccd76cf29af52b656",
+    "notes": [
+      "Only 4 HDFC templates are verified from the Python server. All others need real-device testing.",
+      "Banks frequently update SMS formats. These patterns should be validated against actual SMS on your phone.",
+      "Some banks have multiple sender IDs for different services (transactional, promotional, etc.).",
+      "Date formats vary: dd-mm-yy, dd/mm/yy, dd-MMM-yy, dd MMM YYYY",
+      "Amount formats vary: Rs.499.00, Rs 499.00, INR 499.00, Rs.499",
+      "Balance portion after 'Avl Bal' is intentionally excluded from patterns as it's not needed for transaction parsing"
+    ]
+  }
+}

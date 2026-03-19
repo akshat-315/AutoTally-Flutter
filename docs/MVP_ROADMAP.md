@@ -230,6 +230,7 @@ Build out every remaining screen and feature. Still minimal UI.
 - [ ] Tap → change category, view transactions for this merchant
 - [ ] P2P merchants shown with distinct label
 - [ ] Uncategorised queue accessible (badge with count)
+- [ ] **Incomplete transactions queue**: transactions parsed without merchant/VPA info (e.g., Union Bank SMS). User can: assign existing merchant, create new merchant, pick category. Sorted by date, badge with count on main nav.
 
 **Categories**
 
