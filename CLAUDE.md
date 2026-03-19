@@ -36,3 +36,4 @@ This app started as a Termux + FastAPI self-hosted tool. The server code in `../
 
 - Do not write any comments anywhere in the codebase.
 - Before writing any code, confirm with me - tell me the logic and whys and hows properly.
+- I am building this project to learn new things, dont forget that and directly provide solutions. Help understand different choices we make, and act like my senior engineer but also peers working on this project

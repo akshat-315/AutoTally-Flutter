@@ -1,4 +1,4 @@
-# Delhi — 1 Month MVP Roadmap (Local-First)
+# autotally — 1 Month MVP Roadmap (Local-First)
 
 **Goal**: Ship a fully local, privacy-first expense tracker to the Play Store. Works offline, zero server dependency for core features.
 
@@ -17,26 +17,10 @@ No UI this week. Build the data layer that powers everything — SQLite schema, 
 ### Day 1–2: Flutter Project + SQLite Schema
 
 **Flutter Setup**
+
 - [ ] Install Flutter SDK + Android Studio, configure emulator + real device
-- [ ] Create project (`delhi_app`)
+- [ ] Create project (`autotally_app`)
 - [ ] Add dependencies: `drift` (SQLite ORM), `riverpod`, `dio`, `fl_chart`, `shared_preferences`, `permission_handler`
-- [ ] Project structure:
-  ```
-  lib/
-  ├── core/
-  │   ├── database/         (drift DB, tables, DAOs)
-  │   ├── sms/              (reader, filter, parser)
-  │   ├── templates/         (bundled templates, template engine)
-  │   └── config/           (constants, enums)
-  ├── features/
-  │   ├── onboarding/
-  │   ├── dashboard/
-  │   ├── transactions/
-  │   ├── merchants/
-  │   └── settings/
-  ├── models/
-  └── main.dart
-  ```
 
 **Full SQLite Schema (design once)**
 
@@ -138,6 +122,7 @@ The Python `template_engine.py` compiles YAML patterns with `{placeholders}` int
 Port the tiered merchant resolution from Python (`merchant_ops.py`) to Dart.
 
 **Merchant Resolution**
+
 - [ ] Tier 1: VPA exact match → return existing merchant, inherit category
 - [ ] Tier 2: Exact normalised name match → return existing merchant
 - [ ] Tier 3: Fuzzy name match against confirmed merchants (use `fuzzywuzzy` Dart package or simple token-based similarity) → copy category to new merchant, do NOT link
@@ -146,11 +131,13 @@ Port the tiered merchant resolution from Python (`merchant_ops.py`) to Dart.
 - [ ] VPA dictionary auto-categorisation: check VPA against seed dictionary → assign category + source = `vpa_dict`
 
 **Transaction Storage**
+
 - [ ] Dedup by `sms_id` — skip if already exists
 - [ ] Create transaction with all parsed fields + resolved merchant + inherited category
 - [ ] Set `category_source`: `merchant` / `vpa_dict` / `fuzzy` / null (uncategorised)
 
 **Full Pipeline Test**
+
 - [ ] Read SMS → filter → parse → resolve merchants → store transactions → query back
 - [ ] Verify: transactions in DB, merchants created, categories assigned where possible
 - [ ] Print summary: "Processed X SMS, Y transactions, Z merchants, W uncategorised"
@@ -168,18 +155,21 @@ Get the user from install to a working dashboard. Minimal UI — functional, not
 The moment the user goes from "empty app" to "all my spending is here."
 
 **Permission + SMS Scan**
-- [ ] Welcome screen: one-liner about what Delhi does
-- [ ] Permission request with rationale: "Delhi reads bank SMS to track your spending. Messages stay on your device."
+
+- [ ] Welcome screen: one-liner about what autotally does
+- [ ] Permission request with rationale: "autotally reads bank SMS to track your spending. Messages stay on your device."
 - [ ] On grant: scan inbox, filter financial SMS
 - [ ] Show: "Found X financial messages from Y banks"
 
 **Processing**
+
 - [ ] Progress screen: "Processing your messages... 234/1,203"
 - [ ] Parse all matched SMS → resolve merchants → store transactions
 - [ ] Collect untracked SMS (no template match) → store separately with sender info
 - [ ] Show summary: "Tracked X transactions across Y banks. Z messages from unsupported banks."
 
 **Merchant Review**
+
 - [ ] List all uncategorised merchants, sorted by transaction count
 - [ ] Each item: merchant name, VPA, count, category dropdown
 - [ ] "Skip for now" option (can categorise later)
@@ -235,12 +225,14 @@ Build out every remaining screen and feature. Still minimal UI.
 ### Day 15–16: Merchants + Categories Screens
 
 **Merchants**
+
 - [ ] Searchable merchant list: name, VPA, category, transaction count
 - [ ] Tap → change category, view transactions for this merchant
 - [ ] P2P merchants shown with distinct label
 - [ ] Uncategorised queue accessible (badge with count)
 
 **Categories**
+
 - [ ] List with spending totals per category
 - [ ] Add / edit / delete custom categories
 - [ ] Tap category → filtered transaction list
@@ -309,7 +301,7 @@ Make it real. Handle edge cases. Ship it.
 
 Not a full redesign — just make it look intentional.
 
-- [ ] App icon + splash screen (Delhi/AutoTally logo)
+- [ ] App icon + splash screen (autotally/AutoTally logo)
 - [ ] Consistent color scheme (Material 3 theme — pick one accent color and let M3 derive the rest)
 - [ ] Dark mode (Material 3 makes this nearly free)
 - [ ] Typography: consistent text styles across screens
@@ -324,6 +316,7 @@ Not a full redesign — just make it look intentional.
 ### Day 26–27: Privacy Policy + Play Store Prep
 
 **Privacy Policy** (required — Google is strict about SMS access apps)
+
 - [ ] What's collected: nothing by default. All data stays on device.
 - [ ] SMS access: used solely to parse bank transaction messages. Raw SMS stored only on device.
 - [ ] Cloud mode (future): opt-in, user-controlled, reversible. Data stored on Indian servers.
@@ -332,9 +325,10 @@ Not a full redesign — just make it look intentional.
 - [ ] Host on public URL (GitHub Pages)
 
 **Play Store**
+
 - [ ] Google Play Developer account ($25 one-time)
 - [ ] SMS permission declaration — core functionality use case:
-  > "Delhi reads bank/financial SMS to automatically parse and categorise spending transactions. All parsing happens on-device. No SMS content is transmitted to any server. This is the app's core and only functionality."
+  > "autotally reads bank/financial SMS to automatically parse and categorise spending transactions. All parsing happens on-device. No SMS content is transmitted to any server. This is the app's core and only functionality."
 - [ ] Store listing: name, short description, full description, screenshots (4+), feature graphic
 - [ ] Signed App Bundle (AAB)
 - [ ] Content rating questionnaire
@@ -356,37 +350,37 @@ Not a full redesign — just make it look intentional.
 
 ## Daily Summary
 
-| Day | Focus | Deliverable |
-|-----|-------|-------------|
-| 1–2 | Flutter project + full SQLite schema + seeds | DB ready with all tables |
-| 3 | Port template engine to Dart | Can parse SMS locally |
-| 4 | Bundle templates for top 5 banks | HDFC, ICICI, SBI, Axis, Kotak covered |
-| 5 | SMS reading + filtering + parsing pipeline | SMS → parsed transactions pipeline works |
-| 6–7 | Merchant resolution + transaction storage | Full local engine end-to-end |
-| 8–9 | Onboarding flow (scan → parse → review) | Install to dashboard in 2 minutes |
-| 10–11 | Dashboard screen | Spending summary visible |
-| 12 | Transaction list + filters | Browse and recategorise |
-| 13–14 | Real-time SMS tracking + background worker | New SMS auto-tracked |
-| 15–16 | Merchants + categories screens | Full data management |
-| 17 | Settings + template info | Supported banks visible |
-| 18–19 | Self-learning + smart categorisation | App learns from user |
-| 20–21 | More bank templates + testing | 10+ banks covered |
-| 22–23 | Error handling + edge cases | Production-ready stability |
-| 24–25 | Design pass (colors, dark mode, polish) | Looks intentional |
-| 26–27 | Privacy policy + Play Store prep | Ready to submit |
-| 28 | Submit to Play Store | Shipped |
+| Day   | Focus                                        | Deliverable                              |
+| ----- | -------------------------------------------- | ---------------------------------------- |
+| 1–2   | Flutter project + full SQLite schema + seeds | DB ready with all tables                 |
+| 3     | Port template engine to Dart                 | Can parse SMS locally                    |
+| 4     | Bundle templates for top 5 banks             | HDFC, ICICI, SBI, Axis, Kotak covered    |
+| 5     | SMS reading + filtering + parsing pipeline   | SMS → parsed transactions pipeline works |
+| 6–7   | Merchant resolution + transaction storage    | Full local engine end-to-end             |
+| 8–9   | Onboarding flow (scan → parse → review)      | Install to dashboard in 2 minutes        |
+| 10–11 | Dashboard screen                             | Spending summary visible                 |
+| 12    | Transaction list + filters                   | Browse and recategorise                  |
+| 13–14 | Real-time SMS tracking + background worker   | New SMS auto-tracked                     |
+| 15–16 | Merchants + categories screens               | Full data management                     |
+| 17    | Settings + template info                     | Supported banks visible                  |
+| 18–19 | Self-learning + smart categorisation         | App learns from user                     |
+| 20–21 | More bank templates + testing                | 10+ banks covered                        |
+| 22–23 | Error handling + edge cases                  | Production-ready stability               |
+| 24–25 | Design pass (colors, dark mode, polish)      | Looks intentional                        |
+| 26–27 | Privacy policy + Play Store prep             | Ready to submit                          |
+| 28    | Submit to Play Store                         | Shipped                                  |
 
 ---
 
 ## Risk Register
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Google rejects SMS permission | Blocker | Local-first strengthens the case — "no data leaves device." Write declaration early (Day 1). |
-| Flutter SMS plugin unreliable | High | Test on Day 5, not Day 20. Fallback: Kotlin platform channel. |
-| Template coverage gaps | Medium | Launch with top 5 banks minimum. Users with unsupported banks see "request support" flow. |
-| Drift/SQLite performance on large inboxes | Low | SQLite handles millions of rows. Add indices on transaction_date, merchant_id, category_id. |
-| SMS format changes by banks | Low (post-launch) | App update pushes new templates. Future: LLM generation for instant fixes. |
+| Risk                                      | Impact            | Mitigation                                                                                   |
+| ----------------------------------------- | ----------------- | -------------------------------------------------------------------------------------------- |
+| Google rejects SMS permission             | Blocker           | Local-first strengthens the case — "no data leaves device." Write declaration early (Day 1). |
+| Flutter SMS plugin unreliable             | High              | Test on Day 5, not Day 20. Fallback: Kotlin platform channel.                                |
+| Template coverage gaps                    | Medium            | Launch with top 5 banks minimum. Users with unsupported banks see "request support" flow.    |
+| Drift/SQLite performance on large inboxes | Low               | SQLite handles millions of rows. Add indices on transaction_date, merchant_id, category_id.  |
+| SMS format changes by banks               | Low (post-launch) | App update pushes new templates. Future: LLM generation for instant fixes.                   |
 
 ---
 
@@ -420,4 +414,4 @@ Not a full redesign — just make it look intentional.
 
 ---
 
-*Created: March 13, 2026*
+_Created: March 13, 2026_
