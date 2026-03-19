@@ -4,7 +4,7 @@ import 'package:autotally_flutter/models/parsed_sms.dart';
 const _placeholderPatterns = {
   'amount': r'(?<amount>[\d,]+(?:\.\d{1,2})?)',
   'merchant': r'(?<merchant>.+?)',
-  'date': r'(?<date>[\w/\-\.]+(?:\s\w+\s\d{4})?)',
+  'date': r'(?<date>[\w/\-\.]+(?:\s[\d:]+)?(?:\s\w+\s\d{4})?)',
   'vpa': r'(?<vpa>\S+)',
   'upi_ref': r'(?<upi_ref>\w+)',
   'last4': r'(?<last4>\w+)',
@@ -17,7 +17,7 @@ RegExp compileTemplate(String template) {
     final escapedPlaceholder = RegExp.escape('{${entry.key}}');
     escaped = escaped.replaceAll(escapedPlaceholder, entry.value);
   }
-  escaped = escaped.replaceAll(r'\ ', r'\s+');
+  escaped = escaped.replaceAll(' ', r'\s+');
   return RegExp(escaped, dotAll: true, caseSensitive: false);
 }
 
