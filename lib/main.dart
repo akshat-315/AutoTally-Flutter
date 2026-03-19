@@ -3,6 +3,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:autotally_flutter/database/database.dart';
 import 'package:autotally_flutter/services/sms_parser/template_engine.dart';
 import 'package:autotally_flutter/services/sms_reader/sms_reader_service.dart';
+import 'package:autotally_flutter/services/merchant_resolver/merchant_resolver.dart';
 
 late AppDatabase database;
 
@@ -53,7 +54,8 @@ class _SmsTestScreenState extends State<SmsTestScreen> {
     setState(() => _status = 'Reading SMS...');
 
     final engine = TemplateEngine(database);
-    final reader = SmsReaderService(engine);
+    final resolver = MerchantResolver(database);
+    final reader = SmsReaderService(engine, resolver);
     final result = await reader.readAndParseAll();
 
     setState(() {
