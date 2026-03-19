@@ -1,106 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:autotally_flutter/database/database.dart';
-import 'package:autotally_flutter/services/sms_parser/template_engine.dart';
-import 'package:autotally_flutter/services/sms_reader/sms_reader_service.dart';
-import 'package:autotally_flutter/services/merchant_resolver/merchant_resolver.dart';
-import 'package:autotally_flutter/repositories/transaction_repository.dart';
+import 'package:autotally_flutter/theme/app_theme.dart';
+import 'package:autotally_flutter/screens/shell/app_shell.dart';
 
 late AppDatabase database;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   database = AppDatabase();
-  runApp(const MyApp());
+  runApp(const AutoTallyApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class AutoTallyApp extends StatelessWidget {
+  const AutoTallyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'AutoTally',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
-      home: const SmsTestScreen(),
-    );
-  }
-}
-
-class SmsTestScreen extends StatefulWidget {
-  const SmsTestScreen({super.key});
-
-  @override
-  State<SmsTestScreen> createState() => _SmsTestScreenState();
-}
-
-class _SmsTestScreenState extends State<SmsTestScreen> {
-  String _status = 'Tap the button to scan SMS';
-  final List<String> _results = [];
-
-  Future<void> _scanSms() async {
-    setState(() {
-      _status = 'Requesting permission...';
-      _results.clear();
-    });
-
-    final permission = await Permission.sms.request();
-    if (!permission.isGranted) {
-      setState(() => _status = 'SMS permission denied');
-      return;
-    }
-
-    setState(() => _status = 'Reading SMS...');
-
-    final engine = TemplateEngine(database);
-    final resolver = MerchantResolver(database);
-    final reader = SmsReaderService(engine, resolver);
-    final result = await reader.readAndParseAll();
-
-    final txRepo = TransactionRepository(database);
-    final savedCount = await txRepo.saveBatch(result.parsed);
-
-    setState(() {
-      _status = 'Found ${result.parsed.length} transactions, saved $savedCount new';
-      for (final tx in result.parsed) {
-        final d = tx.data;
-        final amountRupees = (d.amount / 100).toStringAsFixed(2);
-        _results.add(
-          '${d.direction.toUpperCase()} | Rs.$amountRupees | ${d.merchantRaw ?? "unknown"} | ${d.bank} | ${d.transactionDate?.toString().substring(0, 10) ?? "no date"}',
-        );
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('AutoTally - SMS Test')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_status, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _results.length,
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Text(_results[index]),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _scanSms,
-        child: const Icon(Icons.sms),
-      ),
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      themeMode: ThemeMode.light,
+      home: const AppShell(),
     );
   }
 }
