@@ -4,6 +4,7 @@ import 'package:autotally_flutter/database/database.dart';
 import 'package:autotally_flutter/services/sms_parser/template_engine.dart';
 import 'package:autotally_flutter/services/sms_reader/sms_reader_service.dart';
 import 'package:autotally_flutter/services/merchant_resolver/merchant_resolver.dart';
+import 'package:autotally_flutter/repositories/transaction_repository.dart';
 
 late AppDatabase database;
 
@@ -58,8 +59,11 @@ class _SmsTestScreenState extends State<SmsTestScreen> {
     final reader = SmsReaderService(engine, resolver);
     final result = await reader.readAndParseAll();
 
+    final txRepo = TransactionRepository(database);
+    final savedCount = await txRepo.saveBatch(result.parsed);
+
     setState(() {
-      _status = 'Found ${result.parsed.length} transactions';
+      _status = 'Found ${result.parsed.length} transactions, saved $savedCount new';
       for (final tx in result.parsed) {
         final d = tx.data;
         final amountRupees = (d.amount / 100).toStringAsFixed(2);
