@@ -468,6 +468,18 @@ class PlaceholderData {
     return transactionsForMonth(year, month).length;
   }
 
+  static int debitCountForMonth(int year, int month) {
+    return transactionsForMonth(year, month)
+        .where((t) => t.direction == 'debit')
+        .length;
+  }
+
+  static int creditCountForMonth(int year, int month) {
+    return transactionsForMonth(year, month)
+        .where((t) => t.direction == 'credit')
+        .length;
+  }
+
   static List<({MockCategory category, int total})> spendByCategoryForMonth(
       int year, int month) {
     final txns = transactionsForMonth(year, month)
@@ -546,6 +558,20 @@ class PlaceholderData {
 
   static String shortDate(DateTime date) {
     return '${date.day} ${_months[date.month - 1]}';
+  }
+
+  static Map<int, int> dailySpendForMonth(int year, int month) {
+    final txns = transactionsForMonth(year, month)
+        .where((t) => t.direction == 'debit');
+    final daily = <int, int>{};
+    for (final t in txns) {
+      daily.update(t.date.day, (v) => v + t.amount, ifAbsent: () => t.amount);
+    }
+    return daily;
+  }
+
+  static int daysInMonth(int year, int month) {
+    return DateTime(year, month + 1, 0).day;
   }
 
   static Map<String, List<MockTransaction>> groupByDate(

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:autotally_flutter/data/placeholder_data.dart';
@@ -34,12 +36,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  static const _shadowLight = BoxShadow(
-    color: Color(0x0F2C2416),
-    blurRadius: 8,
-    offset: Offset(0, 2),
-  );
-
   static const _shadowMedium = BoxShadow(
     color: Color(0x1A2C2416),
     blurRadius: 16,
@@ -61,7 +57,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const SizedBox(height: 24),
               _buildHeroCard(theme),
               const SizedBox(height: 40),
-              _buildTransactionCards(theme),
+              _buildLedgerSection(theme),
               const SizedBox(height: 40),
               _buildTopCategories(theme),
               const SizedBox(height: 40),
@@ -129,9 +125,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               clipBehavior: Clip.antiAlias,
               child: CustomPaint(
-                painter: _RuledLinesPainter(
+                painter: _LedgerPainter(
                   lineColor: AppTheme.ruled.withValues(alpha: 0.5),
+                  marginColor: AppTheme.inkRed.withValues(alpha: 0.2),
                   spacing: 28,
+                  marginX: 32,
+                ),
+                foregroundPainter: _PaperGrainPainter(
+                  color: AppTheme.inkDark.withValues(alpha: 0.03),
+                  density: 80,
                 ),
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 24, 24, 52),
@@ -269,11 +271,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTransactionCards(ThemeData theme) {
+  Widget _buildLedgerSection(ThemeData theme) {
     final ext = context.appColors;
     final txns = PlaceholderData.transactionsForMonth(
         _currentMonth.year, _currentMonth.month);
-    final recent = txns.take(10).toList();
+    final recent = txns.take(5).toList();
 
     if (recent.isEmpty) return const SizedBox.shrink();
 
@@ -308,98 +310,115 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        SizedBox(
-          height: 162,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            itemCount: recent.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final tx = recent[index];
-              final category = PlaceholderData.categoryById(tx.categoryId);
-              final isDebit = tx.direction == 'debit';
-
-              return Material(
-                color: AppTheme.parchment,
-                borderRadius: BorderRadius.circular(14),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(14),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      SlidePageRoute(
-                        child: TransactionDetailScreen(transaction: tx),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: 150,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: AppTheme.ruled.withValues(alpha: 0.5),
-                        width: 0.5,
-                      ),
-                      boxShadow: const [_shadowLight],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: AppTheme.inkFaded.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Center(
-                            child: category != null
-                                ? Text(category.icon,
-                                    style: const TextStyle(fontSize: 17))
-                                : const Icon(Icons.help_outline_rounded,
-                                    size: 16, color: Color(0xFF9CA3AF)),
-                          ),
-                        ),
-                        const Spacer(),
-                        Text(
-                          tx.merchantName,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          PlaceholderData.shortDate(tx.date),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontStyle: FontStyle.italic,
-                            fontSize: 10,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '${isDebit ? '-' : '+'} ${formatRupees(tx.amount)}',
-                          style: _mono(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: isDebit ? ext.debit : ext.credit,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20),
+          decoration: BoxDecoration(
+            color: AppTheme.parchment,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppTheme.ruled, width: 0.5),
+            boxShadow: const [_shadowMedium],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: CustomPaint(
+            painter: _LedgerPainter(
+              lineColor: AppTheme.ruled.withValues(alpha: 0.4),
+              marginColor: AppTheme.inkRed.withValues(alpha: 0.18),
+              spacing: 52,
+              marginX: 62,
+            ),
+            foregroundPainter: _PaperGrainPainter(
+              color: AppTheme.inkDark.withValues(alpha: 0.02),
+              density: 60,
+            ),
+            child: Column(
+              children: [
+                for (int i = 0; i < recent.length; i++)
+                  _buildLedgerRow(theme, ext, recent[i], i == recent.length - 1),
+              ],
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLedgerRow(
+      ThemeData theme, AppThemeExtension ext, MockTransaction tx, bool isLast) {
+    final isDebit = tx.direction == 'debit';
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            SlidePageRoute(
+              child: TransactionDetailScreen(transaction: tx),
+            ),
+          );
+        },
+        child: SizedBox(
+          height: 52,
+          child: Row(
+            children: [
+              SizedBox(
+                width: 62,
+                child: Center(
+                  child: Text(
+                    PlaceholderData.shortDate(tx.date),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                      fontSize: 10,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Text(
+                    tx.merchantName,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 4, right: 4),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return CustomPaint(
+                        size: Size(constraints.maxWidth, 1),
+                        painter: _DottedLinePainter(
+                          color: AppTheme.ruled,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Text(
+                  '${isDebit ? '-' : '+'} ${formatRupees(tx.amount)}',
+                  style: _mono(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: isDebit ? ext.debit : ext.credit,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -412,6 +431,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final data = allData.length >= 5
         ? allData.take(5).toList()
         : allData.take(3).toList();
+
+    final stampRotations = List.generate(
+      data.length,
+      (i) => (math.Random(i * 7).nextDouble() - 0.5) * 0.12,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -437,7 +461,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
         const SizedBox(height: 20),
         SizedBox(
-          height: 120,
+          height: 130,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             physics: const BouncingScrollPhysics(),
@@ -467,21 +491,40 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: item.category.color.withValues(alpha: 0.06),
-                            border: Border.all(
-                              color: AppTheme.ruled.withValues(alpha: 0.6),
-                              width: 0.5,
+                        Transform.rotate(
+                          angle: stampRotations[index],
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppTheme.inkFaded
+                                  .withValues(alpha: 0.06),
+                              border: Border.all(
+                                color: AppTheme.inkDark
+                                    .withValues(alpha: 0.25),
+                                width: 1.5,
+                              ),
                             ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              item.category.icon,
-                              style: const TextStyle(fontSize: 24),
+                            child: Center(
+                              child: Container(
+                                width: 46,
+                                height: 46,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: AppTheme.inkDark
+                                        .withValues(alpha: 0.12),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    item.category.icon,
+                                    style: const TextStyle(fontSize: 22),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -518,24 +561,95 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 }
 
-class _RuledLinesPainter extends CustomPainter {
+class _LedgerPainter extends CustomPainter {
   final Color lineColor;
+  final Color marginColor;
   final double spacing;
+  final double marginX;
 
-  _RuledLinesPainter({required this.lineColor, this.spacing = 28});
+  _LedgerPainter({
+    required this.lineColor,
+    required this.marginColor,
+    this.spacing = 28,
+    this.marginX = 32,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final linePaint = Paint()
       ..color = lineColor
       ..strokeWidth = 0.5;
 
     for (double y = spacing; y < size.height; y += spacing) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
+    }
+
+    final marginPaint = Paint()
+      ..color = marginColor
+      ..strokeWidth = 1;
+
+    canvas.drawLine(
+      Offset(marginX, 0),
+      Offset(marginX, size.height),
+      marginPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _LedgerPainter oldDelegate) =>
+      lineColor != oldDelegate.lineColor ||
+      spacing != oldDelegate.spacing ||
+      marginColor != oldDelegate.marginColor ||
+      marginX != oldDelegate.marginX;
+}
+
+class _PaperGrainPainter extends CustomPainter {
+  final Color color;
+  final int density;
+
+  _PaperGrainPainter({required this.color, this.density = 80});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final rng = math.Random(42);
+
+    for (int i = 0; i < density; i++) {
+      final x = rng.nextDouble() * size.width;
+      final y = rng.nextDouble() * size.height;
+      final radius = rng.nextDouble() * 1.2 + 0.3;
+      canvas.drawCircle(Offset(x, y), radius, paint);
     }
   }
 
   @override
-  bool shouldRepaint(covariant _RuledLinesPainter oldDelegate) =>
-      lineColor != oldDelegate.lineColor || spacing != oldDelegate.spacing;
+  bool shouldRepaint(covariant _PaperGrainPainter oldDelegate) =>
+      color != oldDelegate.color || density != oldDelegate.density;
+}
+
+class _DottedLinePainter extends CustomPainter {
+  final Color color;
+
+  _DottedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 0.8;
+
+    const dashWidth = 1.5;
+    const gap = 3.0;
+    double x = 0;
+    final y = size.height / 2;
+
+    while (x < size.width) {
+      canvas.drawCircle(Offset(x, y), dashWidth / 2, paint);
+      x += dashWidth + gap;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DottedLinePainter oldDelegate) =>
+      color != oldDelegate.color;
 }

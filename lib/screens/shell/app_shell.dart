@@ -118,6 +118,8 @@ class _BottomNavBar extends StatelessWidget {
   }
 
   Widget _buildGradientIndicator(BuildContext context) {
+    final indicatorColor = Theme.of(context).colorScheme.onSurface;
+
     return SizedBox(
       height: 3,
       child: LayoutBuilder(
@@ -137,17 +139,8 @@ class _BottomNavBar extends StatelessWidget {
                   width: indicatorWidth,
                   height: 3,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
-                    ),
+                    color: indicatorColor,
                     borderRadius: BorderRadius.circular(1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.5),
-                        blurRadius: 8,
-                        spreadRadius: 0,
-                      ),
-                    ],
                   ),
                 ),
               ),
@@ -176,24 +169,14 @@ class _BottomNavBar extends StatelessWidget {
                 scale: animation,
                 child: child,
               ),
-              child: isActive
-                  ? ShaderMask(
-                      key: const ValueKey(true),
-                      shaderCallback: (bounds) => const LinearGradient(
-                        colors: [Color(0xFF818CF8), Color(0xFFA78BFA)],
-                      ).createShader(bounds),
-                      child: Icon(
-                        tab.activeIcon,
-                        size: 24,
-                        color: Colors.white,
-                      ),
-                    )
-                  : Icon(
-                      tab.inactiveIcon,
-                      key: const ValueKey(false),
-                      size: 24,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
+              child: Icon(
+                isActive ? tab.activeIcon : tab.inactiveIcon,
+                key: ValueKey(isActive),
+                size: 24,
+                color: isActive
+                    ? theme.colorScheme.onSurface
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 4),
             AnimatedDefaultTextStyle(
@@ -202,7 +185,7 @@ class _BottomNavBar extends StatelessWidget {
                 fontSize: 11,
                 fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                 color: isActive
-                    ? theme.colorScheme.primary
+                    ? theme.colorScheme.onSurface
                     : theme.colorScheme.onSurfaceVariant,
               ),
               child: Text(tab.label),
