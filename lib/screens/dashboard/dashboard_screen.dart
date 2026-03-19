@@ -6,7 +6,7 @@ import 'package:autotally_flutter/utils/currency_formatter.dart';
 import 'package:autotally_flutter/widgets/month_picker.dart';
 import 'package:autotally_flutter/widgets/review_bell.dart';
 import 'package:autotally_flutter/screens/transactions/transaction_detail_screen.dart';
-import 'package:autotally_flutter/screens/merchants/merchant_detail_screen.dart';
+import 'package:autotally_flutter/screens/dashboard/category_detail_screen.dart';
 import 'package:autotally_flutter/utils/page_transitions.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -26,14 +26,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return 'Good evening,';
   }
 
-  TextStyle _mono(TextStyle? base, {Color? color, double? fontSize, FontWeight? fontWeight}) {
+  TextStyle _mono({double? fontSize, FontWeight? fontWeight, Color? color}) {
     return GoogleFonts.spaceMono(
-      fontSize: fontSize ?? base?.fontSize,
-      fontWeight: fontWeight ?? base?.fontWeight,
-      color: color ?? base?.color,
-      height: base?.height,
+      fontSize: fontSize,
+      fontWeight: fontWeight,
+      color: color,
     );
   }
+
+  static const _shadowLight = BoxShadow(
+    color: Color(0x0F2C2416),
+    blurRadius: 8,
+    offset: Offset(0, 2),
+  );
+
+  static const _shadowMedium = BoxShadow(
+    color: Color(0x1A2C2416),
+    blurRadius: 16,
+    offset: Offset(0, 6),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -49,10 +60,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               _buildHeader(theme),
               const SizedBox(height: 24),
               _buildHeroCard(theme),
-              const SizedBox(height: 32),
-              _buildTransactionsLedger(theme),
-              const SizedBox(height: 32),
-              _buildTopMerchants(theme),
+              const SizedBox(height: 40),
+              _buildTransactionCards(theme),
+              const SizedBox(height: 40),
+              _buildTopCategories(theme),
               const SizedBox(height: 40),
             ],
           ),
@@ -111,9 +122,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20),
               decoration: BoxDecoration(
-                color: AppTheme.parchment,
+                gradient: ext.surfaceGradient,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: AppTheme.ruled, width: 0.5),
+                boxShadow: const [_shadowMedium],
               ),
               clipBehavior: Clip.antiAlias,
               child: CustomPaint(
@@ -162,27 +174,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           letterSpacing: 2,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
                         formatRupees(spent),
                         style: _mono(
-                          theme.textTheme.headlineLarge,
-                          color: theme.colorScheme.onSurface,
-                          fontSize: 32,
+                          fontSize: 38,
                           fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.onSurface,
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        width: 120,
-                        height: 0.5,
-                        color: AppTheme.ruled,
-                      ),
-                      const SizedBox(height: 2),
-                      Container(
-                        width: 120,
-                        height: 0.5,
-                        color: AppTheme.ruled,
                       ),
                     ],
                   ),
@@ -190,14 +189,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             Positioned(
-              bottom: -20,
+              bottom: -22,
               left: 40,
               right: 40,
               child: Row(
                 children: [
                   _buildStatChip(
                     theme,
-                    ext,
                     'Income',
                     formatRupees(received),
                     AppTheme.inkBlue,
@@ -205,7 +203,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const SizedBox(width: 12),
                   _buildStatChip(
                     theme,
-                    ext,
                     'Expenses',
                     formatRupees(expenses),
                     AppTheme.inkRed,
@@ -215,25 +212,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 30),
       ],
     );
   }
 
-  Widget _buildStatChip(ThemeData theme, AppThemeExtension ext,
-      String label, String value, Color accentColor) {
+  Widget _buildStatChip(
+      ThemeData theme, String label, String value, Color accentColor) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: AppTheme.parchmentLight,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppTheme.ruled, width: 0.5),
+          border: Border.all(
+            color: accentColor.withValues(alpha: 0.2),
+            width: 0.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.inkDark.withValues(alpha: 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+              color: accentColor.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+            const BoxShadow(
+              color: Color(0x0F2C2416),
+              blurRadius: 6,
+              offset: Offset(0, 2),
             ),
           ],
         ),
@@ -251,9 +256,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
             Text(
               value,
               style: _mono(
-                theme.textTheme.bodyMedium,
-                color: accentColor,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
+                color: accentColor,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -264,24 +269,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildTransactionsLedger(ThemeData theme) {
+  Widget _buildTransactionCards(ThemeData theme) {
     final ext = context.appColors;
     final txns = PlaceholderData.transactionsForMonth(
         _currentMonth.year, _currentMonth.month);
-    final recent = txns.take(7).toList();
+    final recent = txns.take(10).toList();
 
     if (recent.isEmpty) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Transactions',
+                'Recent Transactions',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: theme.colorScheme.onSurface,
@@ -301,218 +306,215 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          Container(height: 0.5, color: AppTheme.ruled),
-          const SizedBox(height: 2),
-          Container(height: 0.5, color: AppTheme.ruled),
-          const SizedBox(height: 12),
-          ...recent.map((tx) {
-            final category = PlaceholderData.categoryById(tx.categoryId);
-            final isDebit = tx.direction == 'debit';
+        ),
+        const SizedBox(height: 14),
+        SizedBox(
+          height: 162,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: recent.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final tx = recent[index];
+              final category = PlaceholderData.categoryById(tx.categoryId);
+              final isDebit = tx.direction == 'debit';
 
-            return GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  SlidePageRoute(
-                    child: TransactionDetailScreen(transaction: tx),
-                  ),
-                );
-              },
-              behavior: HitTestBehavior.opaque,
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: AppTheme.ruled.withValues(alpha: 0.5),
-                      width: 0.5,
-                    ),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 40,
-                      child: Text(
-                        _shortDay(tx.date),
-                        style: _mono(
-                          theme.textTheme.labelSmall,
-                          color: theme.colorScheme.onSurfaceVariant,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: (category?.color ?? const Color(0xFF9CA3AF))
-                            .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Center(
-                        child: category != null
-                            ? Text(category.icon,
-                                style: const TextStyle(fontSize: 16))
-                            : const Icon(Icons.help_outline_rounded,
-                                size: 16, color: Color(0xFF9CA3AF)),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            tx.merchantName,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: theme.colorScheme.onSurface,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(
-                            category?.name ?? 'Uncategorized',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontStyle: FontStyle.italic,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      '${isDebit ? '-' : '+'} ${formatRupees(tx.amount)}',
-                      style: _mono(
-                        theme.textTheme.bodyMedium,
-                        color: isDebit ? ext.debit : ext.credit,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopMerchants(ThemeData theme) {
-    final data = PlaceholderData.topMerchantsForMonth(
-        _currentMonth.year, _currentMonth.month);
-
-    if (data.isEmpty) return const SizedBox.shrink();
-
-    final topFive = data.take(5).toList();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Frequent Merchants',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: theme.colorScheme.onSurface,
-                ),
-              ),
-              GestureDetector(
-                onTap: () {},
-                child: Text(
-                  'See all',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontStyle: FontStyle.italic,
-                    decoration: TextDecoration.underline,
-                    decorationColor: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Container(height: 0.5, color: AppTheme.ruled),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 84,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: topFive.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 20),
-              itemBuilder: (context, index) {
-                final item = topFive[index];
-                final category =
-                    PlaceholderData.categoryById(item.merchant.categoryId);
-
-                return GestureDetector(
+              return Material(
+                color: AppTheme.parchment,
+                borderRadius: BorderRadius.circular(14),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
                   onTap: () {
                     Navigator.push(
                       context,
                       SlidePageRoute(
-                        child: MerchantDetailScreen(
-                            merchant: item.merchant),
+                        child: TransactionDetailScreen(transaction: tx),
                       ),
                     );
                   },
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 52,
-                        height: 52,
-                        decoration: BoxDecoration(
-                          color: AppTheme.parchment,
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AppTheme.ruled,
-                            width: 0.5,
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            category?.icon ?? '\u{1F4E6}',
-                            style: const TextStyle(fontSize: 22),
-                          ),
-                        ),
+                  child: Container(
+                    width: 150,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: AppTheme.ruled.withValues(alpha: 0.5),
+                        width: 0.5,
                       ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        width: 60,
-                        child: Text(
-                          item.merchant.display,
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                            fontSize: 10,
+                      boxShadow: const [_shadowLight],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: AppTheme.inkFaded.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                          textAlign: TextAlign.center,
+                          child: Center(
+                            child: category != null
+                                ? Text(category.icon,
+                                    style: const TextStyle(fontSize: 17))
+                                : const Icon(Icons.help_outline_rounded,
+                                    size: 16, color: Color(0xFF9CA3AF)),
+                          ),
+                        ),
+                        const Spacer(),
+                        Text(
+                          tx.merchantName,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 2),
+                        Text(
+                          PlaceholderData.shortDate(tx.date),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                            fontStyle: FontStyle.italic,
+                            fontSize: 10,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          '${isDebit ? '-' : '+'} ${formatRupees(tx.amount)}',
+                          style: _mono(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isDebit ? ext.debit : ext.credit,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  String _shortDay(DateTime date) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    return '${months[date.month - 1]}\n${date.day}';
+  Widget _buildTopCategories(ThemeData theme) {
+    final allData = PlaceholderData.spendByCategoryForMonth(
+        _currentMonth.year, _currentMonth.month);
+
+    if (allData.isEmpty) return const SizedBox.shrink();
+
+    final data = allData.length >= 5
+        ? allData.take(5).toList()
+        : allData.take(3).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Where It Went',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(height: 0.5, color: AppTheme.ruled),
+              const SizedBox(height: 2),
+              Container(height: 0.5, color: AppTheme.ruled),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        SizedBox(
+          height: 120,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: data.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (context, index) {
+              final item = data[index];
+
+              return Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(40),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      SlidePageRoute(
+                        child: CategoryDetailScreen(
+                          category: item.category,
+                          initialMonth: _currentMonth,
+                        ),
+                      ),
+                    );
+                  },
+                  child: SizedBox(
+                    width: 80,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: item.category.color.withValues(alpha: 0.06),
+                            border: Border.all(
+                              color: AppTheme.ruled.withValues(alpha: 0.6),
+                              width: 0.5,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              item.category.icon,
+                              style: const TextStyle(fontSize: 24),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          item.category.name,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: theme.colorScheme.onSurface,
+                            fontSize: 11,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          formatRupees(item.total),
+                          style: _mono(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
 
