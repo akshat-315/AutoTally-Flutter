@@ -41,6 +41,7 @@ dependencies:
   path_provider: ^2.1.5
   path: ^1.9.0
   flutter_sms_inbox: ^1.0.4
+  rapidfuzz: ^0.1.1
 
 dev_dependencies:
   flutter_test:
