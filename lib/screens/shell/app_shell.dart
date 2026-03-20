@@ -13,6 +13,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
+  int _previousIndex = 0;
 
   static const _tabs = [
     _TabData(
@@ -37,22 +38,56 @@ class _AppShellState extends State<AppShell> {
     ),
   ];
 
+  static const _screens = [
+    DashboardScreen(),
+    TransactionListScreen(),
+    BudgetsGoalsScreen(),
+    AnalyticsScreen(),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final goingRight = _currentIndex > _previousIndex;
+
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: const [
-          DashboardScreen(),
-          TransactionListScreen(),
-          BudgetsGoalsScreen(),
-          AnalyticsScreen(),
-        ],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 250),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) {
+          final isIncoming = child.key == ValueKey(_currentIndex);
+          final offset = isIncoming
+              ? Tween<Offset>(
+                  begin: Offset(goingRight ? 0.25 : -0.25, 0),
+                  end: Offset.zero,
+                )
+              : Tween<Offset>(
+                  begin: Offset.zero,
+                  end: Offset(goingRight ? -0.25 : 0.25, 0),
+                );
+
+          return SlideTransition(
+            position: offset.animate(animation),
+            child: FadeTransition(
+              opacity: animation,
+              child: child,
+            ),
+          );
+        },
+        child: KeyedSubtree(
+          key: ValueKey(_currentIndex),
+          child: _screens[_currentIndex],
+        ),
       ),
       bottomNavigationBar: _BottomNavBar(
         currentIndex: _currentIndex,
         tabs: _tabs,
-        onTabChanged: (index) => setState(() => _currentIndex = index),
+        onTabChanged: (index) {
+          setState(() {
+            _previousIndex = _currentIndex;
+            _currentIndex = index;
+          });
+        },
       ),
     );
   }

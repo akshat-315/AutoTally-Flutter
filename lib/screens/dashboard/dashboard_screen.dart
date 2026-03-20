@@ -10,6 +10,7 @@ import 'package:autotally_flutter/widgets/category_picker.dart';
 import 'package:autotally_flutter/screens/dashboard/category_detail_screen.dart';
 import 'package:autotally_flutter/screens/settings/settings_screen.dart';
 import 'package:autotally_flutter/utils/page_transitions.dart';
+import 'package:autotally_flutter/widgets/animated_entrance.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -29,6 +30,8 @@ class _DashboardScreenState extends State<DashboardScreen>
   late AnimationController _dismissController;
   late Animation<Offset> _dismissSlide;
   late Animation<double> _dismissRotation;
+  late AnimationController _shakeController;
+  late Animation<double> _shakeOffset;
 
   static const _shadowMedium = BoxShadow(
     color: Color(0x1A2C2416),
@@ -92,12 +95,28 @@ class _DashboardScreenState extends State<DashboardScreen>
       parent: _dismissController,
       curve: Curves.easeInBack,
     ));
+
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _shakeOffset = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0, end: 6), weight: 15),
+      TweenSequenceItem(tween: Tween(begin: 6, end: -5), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: -5, end: 3), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: 3, end: -2), weight: 20),
+      TweenSequenceItem(tween: Tween(begin: -2, end: 0), weight: 25),
+    ]).animate(CurvedAnimation(
+      parent: _shakeController,
+      curve: Curves.easeOut,
+    ));
   }
 
   @override
   void dispose() {
     _stampController.dispose();
     _dismissController.dispose();
+    _shakeController.dispose();
     super.dispose();
   }
 
@@ -106,6 +125,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (picked != null && mounted) {
       setState(() => _stampedCategoryId = picked.id);
       _stampController.forward().then((_) {
+        _shakeController.forward(from: 0);
         Future.delayed(const Duration(milliseconds: 300), () {
           if (mounted) {
             _dismissController.forward().then((_) {
@@ -149,18 +169,34 @@ class _DashboardScreenState extends State<DashboardScreen>
             children: [
               _buildHeader(theme),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: _buildTodaySnapshot(theme),
+              FadeSlideIn(
+                index: 0,
+                slideOffset: const Offset(0, 0.05),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: _buildTodaySnapshot(theme),
+                ),
               ),
               const SizedBox(height: 32),
               if (hasTriageItems) ...[
-                _buildTriageSection(theme),
+                FadeSlideIn(
+                  index: 1,
+                  slideOffset: const Offset(0, 0.05),
+                  child: _buildTriageSection(theme),
+                ),
               ],
               const SizedBox(height: 32),
-              _buildBudgetProgress(theme),
+              FadeSlideIn(
+                index: 2,
+                slideOffset: const Offset(0, 0.05),
+                child: _buildBudgetProgress(theme),
+              ),
               const SizedBox(height: 32),
-              _buildTopCategories(theme),
+              FadeSlideIn(
+                index: 3,
+                slideOffset: const Offset(0, 0.05),
+                child: _buildTopCategories(theme),
+              ),
               const SizedBox(height: 40),
             ],
           ),
@@ -289,11 +325,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                   ),
                 ),
               AnimatedBuilder(
-                animation: _dismissController,
+                animation: Listenable.merge([_dismissController, _shakeController]),
                 builder: (context, child) {
                   return Transform.translate(
                     offset: Offset(
-                      _dismissSlide.value.dx * MediaQuery.of(context).size.width,
+                      _dismissSlide.value.dx * MediaQuery.of(context).size.width + _shakeOffset.value,
                       _dismissSlide.value.dy * 100,
                     ),
                     child: Transform.rotate(
@@ -560,8 +596,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
-                formatRupees(todaySpent),
+              CountUpText(
+                value: todaySpent,
+                formatter: formatRupees,
                 style: _mono(
                   fontSize: 36,
                   fontWeight: FontWeight.w700,
@@ -708,10 +745,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(
-                            remaining >= 0
-                                ? formatRupees(remaining)
-                                : '- ${formatRupees(remaining.abs())}',
+                          CountUpText(
+                            value: remaining.abs(),
+                            formatter: (v) => remaining >= 0
+                                ? formatRupees(v)
+                                : '- ${formatRupees(v)}',
                             style: _mono(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,

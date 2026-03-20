@@ -7,6 +7,7 @@ import 'package:autotally_flutter/widgets/review_bell.dart';
 import 'package:autotally_flutter/widgets/transaction_row.dart';
 import 'package:autotally_flutter/screens/transactions/transaction_detail_screen.dart';
 import 'package:autotally_flutter/utils/page_transitions.dart';
+import 'package:autotally_flutter/widgets/animated_entrance.dart';
 
 class TransactionListScreen extends StatefulWidget {
   const TransactionListScreen({super.key});
@@ -176,8 +177,18 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       ),
       body: txns.isEmpty
           ? _buildEmptyState(theme)
-          : CustomScrollView(
-              physics: const BouncingScrollPhysics(),
+          : RefreshIndicator(
+              onRefresh: () async {
+                await Future.delayed(const Duration(milliseconds: 800));
+                if (mounted) setState(() {});
+              },
+              color: AppTheme.inkDark,
+              backgroundColor: AppTheme.parchment,
+              displacement: 40,
+              child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
@@ -196,11 +207,23 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                                 grouped.keys.elementAt(sectionIndex);
                             final sectionTxns = grouped[dateLabel]!;
 
+                            int rowIndex = 0;
+                            for (int s = 0; s < sectionIndex; s++) {
+                              rowIndex += grouped.values.elementAt(s).length + 1;
+                            }
+
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildDateHeader(theme, dateLabel),
-                                ...sectionTxns.map((tx) => TransactionRow(
+                                FadeSlideIn(
+                                  index: rowIndex,
+                                  child: _buildDateHeader(theme, dateLabel),
+                                ),
+                                ...sectionTxns.asMap().entries.map((entry) {
+                                  final tx = entry.value;
+                                  return FadeSlideIn(
+                                    index: rowIndex + entry.key + 1,
+                                    child: TransactionRow(
                                       transaction: tx,
                                       onTap: () {
                                         Navigator.push(
@@ -211,7 +234,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                                           ),
                                         );
                                       },
-                                    )),
+                                    ),
+                                  );
+                                }),
                               ],
                             );
                           },
@@ -220,6 +245,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                       ),
                 const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
               ],
+            ),
             ),
     );
   }
