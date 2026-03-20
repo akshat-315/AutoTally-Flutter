@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:autotally_flutter/database/database.dart';
 import 'package:autotally_flutter/theme/app_theme.dart';
 import 'package:autotally_flutter/screens/shell/app_shell.dart';
+import 'package:autotally_flutter/screens/splash/splash_screen.dart';
 
 late AppDatabase database;
 
@@ -22,7 +23,31 @@ class AutoTallyApp extends StatelessWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.light,
-      home: const AppShell(),
+      home: const _AppEntry(),
+    );
+  }
+}
+
+class _AppEntry extends StatefulWidget {
+  const _AppEntry();
+
+  @override
+  State<_AppEntry> createState() => _AppEntryState();
+}
+
+class _AppEntryState extends State<_AppEntry> {
+  bool _showSplash = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        const AppShell(),
+        if (_showSplash)
+          SplashScreen(
+            onComplete: () => setState(() => _showSplash = false),
+          ),
+      ],
     );
   }
 }

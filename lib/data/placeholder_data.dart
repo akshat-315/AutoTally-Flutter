@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 class MockCategory {
@@ -716,5 +718,76 @@ class PlaceholderData {
       grouped.putIfAbsent(key, () => []).add(tx);
     }
     return grouped;
+  }
+
+  static List<({DateTime month, int spent, int income})> monthlyTrend() {
+    return [
+      (month: DateTime(2025, 10), spent: 4200000, income: 8500000),
+      (month: DateTime(2025, 11), spent: 4850000, income: 8500000),
+      (month: DateTime(2025, 12), spent: 5600000, income: 8700000),
+      (month: DateTime(2026, 1), spent: 4100000, income: 8500000),
+      (month: DateTime(2026, 2), spent: 3950000, income: 8500000),
+      (month: DateTime(2026, 3), spent: totalSpentForMonth(2026, 3), income: totalReceivedForMonth(2026, 3)),
+    ];
+  }
+
+  static Map<int, int> cumulativeDailySpend(int year, int month) {
+    final daily = dailySpendForMonth(year, month);
+    final days = daysInMonth(year, month);
+    final cumulative = <int, int>{};
+    int running = 0;
+    for (int d = 1; d <= days; d++) {
+      running += daily[d] ?? 0;
+      cumulative[d] = running;
+    }
+    return cumulative;
+  }
+
+  static Map<int, int> dayOfWeekTotals(int year, int month) {
+    final txns = transactionsForMonth(year, month)
+        .where((t) => t.direction == 'debit');
+    final totals = <int, int>{};
+    for (final t in txns) {
+      final dow = t.date.weekday;
+      totals.update(dow, (v) => v + t.amount, ifAbsent: () => t.amount);
+    }
+    return totals;
+  }
+
+  static Map<int, int> syntheticDailySpend(int year, int month) {
+    if (year == 2026 && month == 3) return dailySpendForMonth(year, month);
+    final days = daysInMonth(year, month);
+    final trend = monthlyTrend();
+    final monthData = trend.where((t) => t.month.year == year && t.month.month == month);
+    final totalTarget = monthData.isNotEmpty ? monthData.first.spent : 4000000;
+    final rng = math.Random(year * 100 + month);
+    final daily = <int, int>{};
+    var remaining = totalTarget;
+    for (int d = 1; d <= days; d++) {
+      if (d == days) {
+        daily[d] = remaining.clamp(0, remaining);
+      } else {
+        final avg = remaining ~/ (days - d + 1);
+        final variance = (avg * 0.5).toInt();
+        final spend = variance > 0
+            ? (avg + rng.nextInt(variance * 2) - variance).clamp(0, remaining)
+            : avg.clamp(0, remaining);
+        daily[d] = spend;
+        remaining -= spend;
+      }
+    }
+    return daily;
+  }
+
+  static Map<int, int> syntheticCumulativeDailySpend(int year, int month) {
+    final daily = syntheticDailySpend(year, month);
+    final days = daysInMonth(year, month);
+    final cumulative = <int, int>{};
+    int running = 0;
+    for (int d = 1; d <= days; d++) {
+      running += daily[d] ?? 0;
+      cumulative[d] = running;
+    }
+    return cumulative;
   }
 }

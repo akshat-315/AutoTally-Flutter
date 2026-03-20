@@ -70,7 +70,7 @@ extension AppThemeX on BuildContext {
 
 class AppTheme {
   static const inkDark = Color(0xFF2C2416);
-  static const inkFaded = Color(0xFF8B7E6A);
+  static const inkFaded = Color(0xFF5A5044);
   static const parchment = Color(0xFFF4EFDF);
   static const parchmentLight = Color(0xFFFFFDF5);
   static const ruled = Color(0xFFD4C9B5);

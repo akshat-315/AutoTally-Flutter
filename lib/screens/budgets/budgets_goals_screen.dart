@@ -117,7 +117,7 @@ class BudgetsGoalsScreen extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           letterSpacing: 1.5,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                       Text(
@@ -139,7 +139,7 @@ class BudgetsGoalsScreen extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           letterSpacing: 1.5,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                       Text(
@@ -169,7 +169,7 @@ class BudgetsGoalsScreen extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           letterSpacing: 1.5,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                       Column(
@@ -306,7 +306,7 @@ class BudgetsGoalsScreen extends StatelessWidget {
                   Text(
                     '${formatRupees(spent)} / ${formatRupees(budget)}',
                     style: _mono(
-                      fontSize: 10,
+                      fontSize: 11,
                       fontWeight: FontWeight.w700,
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
@@ -319,7 +319,7 @@ class BudgetsGoalsScreen extends StatelessWidget {
                     style: theme.textTheme.labelSmall?.copyWith(
                       color: isOver ? ext.debit : ext.credit,
                       fontWeight: FontWeight.w600,
-                      fontSize: 10,
+                      fontSize: 11,
                     ),
                   ),
                 ],
@@ -504,7 +504,7 @@ class BudgetsGoalsScreen extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           fontStyle: FontStyle.italic,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                     ],

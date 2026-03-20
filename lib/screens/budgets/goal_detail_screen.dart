@@ -83,7 +83,7 @@ class GoalDetailScreen extends StatelessWidget {
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   letterSpacing: 2,
-                  fontSize: 10,
+                  fontSize: 11,
                 ),
               ),
               const SizedBox(height: 6),
@@ -121,7 +121,7 @@ class GoalDetailScreen extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           letterSpacing: 1.5,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -143,7 +143,7 @@ class GoalDetailScreen extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           letterSpacing: 1.5,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -257,7 +257,7 @@ class GoalDetailScreen extends StatelessWidget {
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                   fontStyle: FontStyle.italic,
-                  fontSize: 10,
+                  fontSize: 11,
                 ),
                 textAlign: TextAlign.center,
               ),

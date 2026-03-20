@@ -52,7 +52,10 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            _buildLedgerEntry(theme, ext, tx, isDebit, category, merchant),
+            const SizedBox(height: 8),
+            _buildAmountCard(theme, ext, tx, isDebit),
+            const SizedBox(height: 16),
+            _buildDetailsCard(theme, tx, isDebit, category, merchant),
             const SizedBox(height: 16),
             _buildSmsAttachment(theme, tx),
             const SizedBox(height: 32),
@@ -62,9 +65,96 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     );
   }
 
-  Widget _buildLedgerEntry(ThemeData theme, AppThemeExtension ext,
-      MockTransaction tx, bool isDebit, MockCategory? category,
-      MockMerchant? merchant) {
+  Widget _buildAmountCard(
+    ThemeData theme,
+    AppThemeExtension ext,
+    MockTransaction tx,
+    bool isDebit,
+  ) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        gradient: ext.surfaceGradient,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.ruled, width: 0.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A2C2416),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: CustomPaint(
+        painter: _LedgerRuledPainter(
+          lineColor: AppTheme.ruled.withValues(alpha: 0.3),
+          spacing: 28,
+        ),
+        foregroundPainter: _PaperGrainPainter(
+          color: AppTheme.inkDark.withValues(alpha: 0.025),
+          density: 80,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          child: Column(
+            children: [
+              Text(
+                tx.merchantName,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                _formatDateTime(tx.date),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  const SizedBox(width: 8),
+                  Text(
+                    '${isDebit ? '-' : '+'} ${formatRupees(tx.amount)}',
+                    style: _mono(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: isDebit ? ext.debit : ext.credit,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Column(
+                children: [
+                  Container(height: 0.5, color: AppTheme.ruled),
+                  const SizedBox(height: 2),
+                  Container(height: 0.5, color: AppTheme.ruled),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailsCard(
+    ThemeData theme,
+    MockTransaction tx,
+    bool isDebit,
+    MockCategory? category,
+    MockMerchant? merchant,
+  ) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
@@ -84,20 +174,17 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         painter: _LedgerPagePainter(
           lineColor: AppTheme.ruled.withValues(alpha: 0.3),
           marginColor: AppTheme.inkRed.withValues(alpha: 0.18),
-          spacing: 28,
-          marginX: 72,
+          spacing: 44,
+          marginX: 90,
         ),
         foregroundPainter: _PaperGrainPainter(
-          color: AppTheme.inkDark.withValues(alpha: 0.025),
-          density: 100,
+          color: AppTheme.inkDark.withValues(alpha: 0.02),
+          density: 80,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
-            _buildAmountHeader(theme, ext, tx, isDebit),
-            const SizedBox(height: 20),
-            _buildEntryRow(theme, 'Date', _formatDateTime(tx.date)),
+            const SizedBox(height: 6),
             if (merchant != null)
               _buildMerchantRow(theme, merchant)
             else
@@ -105,138 +192,74 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             _buildCategoryRow(theme, category),
             if (tx.categorySource != null)
               _buildEntryRow(
-                  theme, 'Source', _categorySourceLabel(tx.categorySource!)),
+                theme,
+                'Source',
+                _categorySourceLabel(tx.categorySource!),
+              ),
             _buildEntryRow(theme, 'Bank', tx.bank),
             if (tx.accountLast4 != null)
               _buildEntryRow(theme, 'Account', 'xx${tx.accountLast4}'),
-            if (tx.vpa != null)
-              _buildEntryRow(theme, 'VPA', tx.vpa!),
-            if (tx.upiRef != null)
-              _buildEntryRow(theme, 'UPI Ref', tx.upiRef!),
-            if (tx.isP2p)
-              _buildEntryRow(theme, 'Type', 'P2P Transfer'),
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                children: [
-                  Container(height: 0.5, color: AppTheme.ruled),
-                  const SizedBox(height: 2),
-                  Container(height: 0.5, color: AppTheme.ruled),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
+            if (tx.vpa != null) _buildEntryRow(theme, 'VPA', tx.vpa!),
+            if (tx.upiRef != null) _buildEntryRow(theme, 'UPI Ref', tx.upiRef!),
+            if (tx.isP2p) _buildEntryRow(theme, 'Type', 'P2P Transfer'),
+            const SizedBox(height: 6),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAmountHeader(ThemeData theme, AppThemeExtension ext,
-      MockTransaction tx, bool isDebit) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 52,
-            child: Text(
-              isDebit ? 'Dr.' : 'Cr.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: theme.colorScheme.onSurfaceVariant,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tx.merchantName,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${isDebit ? '-' : '+'} ${formatRupees(tx.amount)}',
-                  style: _mono(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: isDebit ? ext.debit : ext.credit,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEntryRow(ThemeData theme, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+    return SizedBox(
+      height: 44,
       child: Row(
         children: [
           SizedBox(
-            width: 52,
-            child: Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-                fontSize: 11,
+            width: 90,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 16),
+              child: Text(
+                label,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                  fontSize: 12,
+                ),
               ),
             ),
           ),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final valueText = value;
-                final textPainter = TextPainter(
-                  text: TextSpan(
-                    text: valueText,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: theme.colorScheme.onSurface,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 12, right: 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SizedBox(
+                          height: 12,
+                          child: CustomPaint(
+                            size: Size(constraints.maxWidth, 12),
+                            painter: _DottedLinePainter(color: AppTheme.ruled),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  textDirection: TextDirection.ltr,
-                )..layout();
-
-                final dotsWidth =
-                    constraints.maxWidth - textPainter.width - 8;
-
-                return Row(
-                  children: [
-                    if (dotsWidth > 10)
-                      SizedBox(
-                        width: dotsWidth,
-                        height: 12,
-                        child: CustomPaint(
-                          painter: _DottedLinePainter(color: AppTheme.ruled),
-                        ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    flex: 0,
+                    child: Text(
+                      value,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: theme.colorScheme.onSurface,
                       ),
-                    if (dotsWidth > 10) const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        valueText,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: theme.colorScheme.onSurface,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.right,
-                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                );
-              },
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -251,38 +274,50 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         onTap: () {
           Navigator.push(
             context,
-            SlidePageRoute(
-              child: MerchantDetailScreen(merchant: merchant),
-            ),
+            SlidePageRoute(child: MerchantDetailScreen(merchant: merchant)),
           );
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        child: SizedBox(
+          height: 44,
           child: Row(
             children: [
               SizedBox(
-                width: 52,
-                child: Text(
-                  'Merchant',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 11,
+                width: 90,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Text(
+                    'Merchant',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ),
               const Spacer(),
-              Text(
-                merchant.display,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface,
-                  decoration: TextDecoration.underline,
-                  decorationColor: AppTheme.ruled,
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      merchant.display,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppTheme.ruled,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 16,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 2),
-              Icon(Icons.chevron_right_rounded,
-                  size: 16, color: theme.colorScheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -295,52 +330,77 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () async {
-          final picked =
-              await showCategoryPicker(context, selectedId: _categoryId);
+          final picked = await showCategoryPicker(
+            context,
+            selectedId: _categoryId,
+          );
           if (picked != null) {
             setState(() => _categoryId = picked.id);
           }
         },
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+        child: SizedBox(
+          height: 44,
           child: Row(
             children: [
               SizedBox(
-                width: 52,
-                child: Text(
-                  'Category',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 11,
+                width: 90,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Text(
+                    'Category',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               ),
               const Spacer(),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppTheme.inkFaded.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: AppTheme.ruled,
-                    width: 0.5,
+              Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      category?.name ?? 'Uncategorized',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.colorScheme.onSurface,
-                      ),
+                  decoration: BoxDecoration(
+                    color: category != null
+                        ? category.color.withValues(alpha: 0.1)
+                        : AppTheme.inkFaded.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: category != null
+                          ? category.color.withValues(alpha: 0.3)
+                          : AppTheme.ruled,
+                      width: 0.5,
                     ),
-                    const SizedBox(width: 4),
-                    Icon(Icons.keyboard_arrow_down_rounded,
-                        size: 14, color: theme.colorScheme.onSurfaceVariant),
-                  ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (category != null) ...[
+                        Text(
+                          category.icon,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        category?.name ?? 'Uncategorized',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.onSurface,
+                          fontSize: 13,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        size: 16,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -369,14 +429,16 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                 padding: const EdgeInsets.all(14),
                 child: Row(
                   children: [
-                    Icon(Icons.sms_outlined,
-                        size: 16,
-                        color: theme.colorScheme.onSurfaceVariant),
-                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.sms_outlined,
+                      size: 18,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         'Original SMS',
-                        style: theme.textTheme.bodySmall?.copyWith(
+                        style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: theme.colorScheme.onSurface,
                         ),
@@ -387,7 +449,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       duration: const Duration(milliseconds: 200),
                       child: Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        size: 18,
+                        size: 20,
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
@@ -409,9 +471,10 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                 children: [
                   Text(
                     'From: ${tx.smsSender}',
-                    style: theme.textTheme.labelSmall?.copyWith(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       fontWeight: FontWeight.w600,
                       color: theme.colorScheme.onSurfaceVariant,
+                      fontSize: 12,
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -445,14 +508,24 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
   String _formatDateTime(DateTime date) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final hour = date.hour == 0
         ? 12
         : date.hour > 12
-            ? date.hour - 12
-            : date.hour;
+        ? date.hour - 12
+        : date.hour;
     final ampm = date.hour >= 12 ? 'PM' : 'AM';
     final min = date.minute.toString().padLeft(2, '0');
     return '${date.day} ${months[date.month - 1]} ${date.year}, $hour:$min $ampm';
@@ -472,6 +545,28 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   }
 }
 
+class _LedgerRuledPainter extends CustomPainter {
+  final Color lineColor;
+  final double spacing;
+
+  _LedgerRuledPainter({required this.lineColor, this.spacing = 28});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = lineColor
+      ..strokeWidth = 0.5;
+
+    for (double y = spacing; y < size.height; y += spacing) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _LedgerRuledPainter oldDelegate) =>
+      lineColor != oldDelegate.lineColor || spacing != oldDelegate.spacing;
+}
+
 class _LedgerPagePainter extends CustomPainter {
   final Color lineColor;
   final Color marginColor;
@@ -481,8 +576,8 @@ class _LedgerPagePainter extends CustomPainter {
   _LedgerPagePainter({
     required this.lineColor,
     required this.marginColor,
-    this.spacing = 28,
-    this.marginX = 72,
+    this.spacing = 44,
+    this.marginX = 90,
   });
 
   @override

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:autotally_flutter/screens/dashboard/dashboard_screen.dart';
 import 'package:autotally_flutter/screens/transactions/transaction_list_screen.dart';
 import 'package:autotally_flutter/screens/budgets/budgets_goals_screen.dart';
-import 'package:autotally_flutter/screens/settings/settings_screen.dart';
+import 'package:autotally_flutter/screens/analytics/analytics_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -31,9 +31,9 @@ class _AppShellState extends State<AppShell> {
       inactiveIcon: Icons.account_balance_wallet_outlined,
     ),
     _TabData(
-      label: 'Settings',
-      activeIcon: Icons.settings_rounded,
-      inactiveIcon: Icons.settings_outlined,
+      label: 'Analytics',
+      activeIcon: Icons.insights_rounded,
+      inactiveIcon: Icons.insights_outlined,
     ),
   ];
 
@@ -46,7 +46,7 @@ class _AppShellState extends State<AppShell> {
           DashboardScreen(),
           TransactionListScreen(),
           BudgetsGoalsScreen(),
-          SettingsScreen(),
+          AnalyticsScreen(),
         ],
       ),
       bottomNavigationBar: _BottomNavBar(

@@ -22,7 +22,7 @@ String formatIndianNumber(int number) {
 
 String formatRupees(int paise) {
   final rupees = paise.abs() ~/ 100;
-  return 'Rs ${formatIndianNumber(rupees)}';
+  return '₹${formatIndianNumber(rupees)}';
 }
 
 String formatRupeesWithSign(int paise, String direction) {

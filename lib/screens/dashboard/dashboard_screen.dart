@@ -8,6 +8,7 @@ import 'package:autotally_flutter/utils/currency_formatter.dart';
 import 'package:autotally_flutter/widgets/review_bell.dart';
 import 'package:autotally_flutter/widgets/category_picker.dart';
 import 'package:autotally_flutter/screens/dashboard/category_detail_screen.dart';
+import 'package:autotally_flutter/screens/settings/settings_screen.dart';
 import 'package:autotally_flutter/utils/page_transitions.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -195,6 +196,15 @@ class _DashboardScreenState extends State<DashboardScreen>
               ],
             ),
           ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, size: 24),
+            onPressed: () {
+              Navigator.push(
+                context,
+                SlidePageRoute(child: const SettingsScreen()),
+              );
+            },
+          ),
           const ReviewBell(),
         ],
       ),
@@ -380,7 +390,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     child: Text(
                       tx.rawSms,
                       style: _mono(
-                        fontSize: 10,
+                        fontSize: 11,
                         color: theme.colorScheme.onSurfaceVariant,
                       ).copyWith(height: 1.5),
                       maxLines: 3,
@@ -640,7 +650,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           letterSpacing: 1.5,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                       Text(
@@ -662,7 +672,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           letterSpacing: 1.5,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                       Text(
@@ -692,7 +702,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         style: theme.textTheme.labelSmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                           letterSpacing: 1.5,
-                          fontSize: 10,
+                          fontSize: 11,
                         ),
                       ),
                       Column(
@@ -845,7 +855,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         Text(
                           formatRupees(item.total),
                           style: _mono(
-                            fontSize: 10,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
