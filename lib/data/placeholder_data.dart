@@ -134,6 +134,7 @@ class PlaceholderData {
     MockCategory(id: 8, name: 'Transfers', icon: '\u{1F504}', color: Color(0xFF78909C)),
     MockCategory(id: 9, name: 'Subscriptions', icon: '\u{1F501}', color: Color(0xFFFF9800)),
     MockCategory(id: 10, name: 'Other', icon: '\u{1F4E6}', color: Color(0xFF9E9E9E)),
+    MockCategory(id: 11, name: 'Uncategorized', icon: '\u{2753}', color: Color(0xFF9E9E9E)),
   ];
 
   static const merchants = <MockMerchant>[

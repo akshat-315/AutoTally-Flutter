@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:autotally_flutter/screens/dashboard/dashboard_screen.dart';
 import 'package:autotally_flutter/screens/transactions/transaction_list_screen.dart';
 import 'package:autotally_flutter/screens/merchants/merchant_list_screen.dart';
-import 'package:autotally_flutter/screens/analytics/analytics_screen.dart';
+import 'package:autotally_flutter/screens/categories/category_list_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
@@ -32,9 +32,9 @@ class _AppShellState extends State<AppShell> {
       inactiveIcon: Icons.store_outlined,
     ),
     _TabData(
-      label: 'Analytics',
-      activeIcon: Icons.bar_chart_rounded,
-      inactiveIcon: Icons.bar_chart_outlined,
+      label: 'Categories',
+      activeIcon: Icons.category_rounded,
+      inactiveIcon: Icons.category_outlined,
     ),
   ];
 
@@ -53,7 +53,7 @@ class _AppShellState extends State<AppShell> {
       DashboardScreen(onSwitchTab: _switchTab),
       const TransactionListScreen(),
       const MerchantListScreen(),
-      const AnalyticsScreen(),
+      const CategoryListScreen(),
     ];
 
     return Scaffold(

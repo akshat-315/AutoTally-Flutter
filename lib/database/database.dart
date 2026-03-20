@@ -24,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -37,6 +37,18 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await customStatement('ALTER TABLE merchants RENAME COLUMN is_p2p TO auto_categorize');
         await customStatement('UPDATE merchants SET auto_categorize = CASE WHEN auto_categorize = 0 THEN 1 ELSE 0 END');
+      }
+      if (from < 3) {
+        await customStatement(
+          "INSERT OR IGNORE INTO categories (name, icon, color, is_default) "
+          "VALUES ('Uncategorized', '❓', '#9E9E9E', 1)"
+        );
+        await customStatement(
+          "UPDATE transactions SET category_id = "
+          "(SELECT id FROM categories WHERE name = 'Uncategorized'), "
+          "category_source = 'default' "
+          "WHERE category_id IS NULL"
+        );
       }
     },
   );
@@ -53,6 +65,7 @@ class AppDatabase extends _$AppDatabase {
       ('Transfers', '🔄', '#78909C'),
       ('Subscriptions', '🔁', '#FF9800'),
       ('Other', '📦', '#9E9E9E'),
+      ('Uncategorized', '❓', '#9E9E9E'),
     ];
 
     for (final (name, icon, color) in defaults) {

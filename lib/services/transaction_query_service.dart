@@ -270,6 +270,148 @@ class TransactionQueryService {
     return txns.map((t) => _toView(t, merchantMap)).toList();
   }
 
+  Future<List<MockTransaction>> transactionsForRange(
+      DateTime start, DateTime end) async {
+    final txns = await (_db.select(_db.transactions)
+      ..where((t) => t.transactionDate.isBetweenValues(start, end))
+      ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)])
+    ).get();
+
+    final merchants = await _db.select(_db.merchants).get();
+    final merchantMap = {for (var m in merchants) m.id: m};
+
+    return txns.map((t) => _toView(t, merchantMap)).toList();
+  }
+
+  Future<({int spent, int received, int txCount, int debitCount, int creditCount})>
+      rangeStats(DateTime start, DateTime end) async {
+    final txns = await transactionsForRange(start, end);
+    final debits = txns.where((t) => t.direction == 'debit' && !t.isP2p);
+    final credits = txns.where((t) => t.direction == 'credit' && !t.isP2p);
+    return (
+      spent: debits.fold<int>(0, (sum, t) => sum + t.amount),
+      received: credits.fold<int>(0, (sum, t) => sum + t.amount),
+      txCount: txns.length,
+      debitCount: txns.where((t) => t.direction == 'debit').length,
+      creditCount: txns.where((t) => t.direction == 'credit').length,
+    );
+  }
+
+  Future<List<({MockCategory category, int total})>> spendByCategoryForRange(
+      DateTime start, DateTime end) async {
+    final txns = await transactionsForRange(start, end);
+    final categories = await getCategories();
+    final catMap = {for (var c in categories) c.id: c};
+
+    final totals = <int, int>{};
+    for (final t in txns) {
+      if (t.direction == 'debit' && !t.isP2p && t.categoryId != null) {
+        totals.update(t.categoryId!, (v) => v + t.amount,
+            ifAbsent: () => t.amount);
+      }
+    }
+
+    final result = totals.entries
+        .where((e) => catMap.containsKey(e.key))
+        .map((e) => (category: catMap[e.key]!, total: e.value))
+        .toList()
+      ..sort((a, b) => b.total.compareTo(a.total));
+
+    return result;
+  }
+
+  Future<List<({String name, int total, int count})>> topMerchantsForRange(
+      DateTime start, DateTime end, {int limit = 5}) async {
+    final txns = await transactionsForRange(start, end);
+    final totals = <int, int>{};
+    final counts = <int, int>{};
+    final names = <int, String>{};
+
+    for (final t in txns) {
+      if (t.direction == 'debit' && !t.isP2p && t.merchantId != null) {
+        totals.update(t.merchantId!, (v) => v + t.amount,
+            ifAbsent: () => t.amount);
+        counts.update(t.merchantId!, (v) => v + 1, ifAbsent: () => 1);
+        names.putIfAbsent(t.merchantId!, () => t.merchantName);
+      }
+    }
+
+    final result = totals.entries
+        .map((e) => (name: names[e.key]!, total: e.value, count: counts[e.key]!))
+        .toList()
+      ..sort((a, b) => b.total.compareTo(a.total));
+    return result.take(limit).toList();
+  }
+
+  Future<Map<int, int>> cumulativeDailySpendForRange(
+      DateTime start, DateTime end) async {
+    final txns = await transactionsForRange(start, end);
+    final totalDays = end.difference(start).inDays + 1;
+    final daily = <int, int>{};
+
+    for (final t in txns) {
+      if (t.direction == 'debit') {
+        final dayIndex = t.date.difference(start).inDays + 1;
+        daily.update(dayIndex, (v) => v + t.amount, ifAbsent: () => t.amount);
+      }
+    }
+
+    final cumulative = <int, int>{};
+    int running = 0;
+    for (int d = 1; d <= totalDays; d++) {
+      running += daily[d] ?? 0;
+      cumulative[d] = running;
+    }
+    return cumulative;
+  }
+
+  Future<Map<int, int>> dayOfWeekTotalsForRange(
+      DateTime start, DateTime end) async {
+    final txns = await transactionsForRange(start, end);
+    final totals = <int, int>{};
+    for (final t in txns) {
+      if (t.direction == 'debit') {
+        final dow = t.date.weekday;
+        totals.update(dow, (v) => v + t.amount, ifAbsent: () => t.amount);
+      }
+    }
+    return totals;
+  }
+
+  Future<List<({DateTime month, int spent, int income})>> trendForRange(
+      DateTime start, DateTime end) async {
+    final rangeDays = end.difference(start).inDays;
+
+    if (rangeDays < 60) {
+      final weekCount = (rangeDays / 7).ceil().clamp(1, 12);
+      final result = <({DateTime month, int spent, int income})>[];
+      var weekStart = start;
+      for (int i = 0; i < weekCount; i++) {
+        var weekEnd = weekStart.add(const Duration(days: 6));
+        if (weekEnd.isAfter(end)) weekEnd = end;
+        final wEnd = DateTime(weekEnd.year, weekEnd.month, weekEnd.day, 23, 59, 59);
+        final stats = await rangeStats(weekStart, wEnd);
+        result.add((month: weekStart, spent: stats.spent, income: stats.received));
+        weekStart = weekEnd.add(const Duration(days: 1));
+        if (weekStart.isAfter(end)) break;
+      }
+      return result;
+    }
+
+    final result = <({DateTime month, int spent, int income})>[];
+    var current = DateTime(start.year, start.month);
+    final endMonth = DateTime(end.year, end.month);
+    while (!current.isAfter(endMonth)) {
+      final mStart = current.isBefore(start) ? start : current;
+      final mEnd = DateTime(current.year, current.month + 1, 0, 23, 59, 59);
+      final actualEnd = mEnd.isAfter(end) ? end : mEnd;
+      final stats = await rangeStats(mStart, actualEnd);
+      result.add((month: current, spent: stats.spent, income: stats.received));
+      current = DateTime(current.year, current.month + 1);
+    }
+    return result;
+  }
+
   Future<void> updateTransactionCategory(int transactionId, int categoryId) async {
     await (_db.update(_db.transactions)
       ..where((t) => t.id.equals(transactionId))

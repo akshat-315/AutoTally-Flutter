@@ -27,6 +27,15 @@ class TransactionRepository {
         categorySource = 'merchant';
       }
     }
+    if (categoryId == null) {
+      final uncategorized = await (_db.select(_db.categories)
+            ..where((c) => c.name.equals('Uncategorized')))
+          .getSingleOrNull();
+      if (uncategorized != null) {
+        categoryId = uncategorized.id;
+        categorySource = 'default';
+      }
+    }
 
     final id = await _db.into(_db.transactions).insert(
           TransactionsCompanion.insert(
