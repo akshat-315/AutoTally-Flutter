@@ -355,7 +355,7 @@ class _MerchantsList extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final uncatMerchants = PlaceholderData.merchants
-        .where((m) => m.categoryId == null && !m.isP2p)
+        .where((m) => m.categoryId == null)
         .toList();
 
     if (uncatMerchants.isEmpty) {

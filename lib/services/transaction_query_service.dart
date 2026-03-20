@@ -131,7 +131,7 @@ class TransactionQueryService {
       displayName: row.displayName,
       vpa: row.vpa,
       categoryId: row.categoryId,
-      isP2p: row.isP2p,
+      autoCategorize: row.autoCategorize,
       transactionCount: txns.length,
       totalSpent: totalSpent,
     );
@@ -157,7 +157,7 @@ class TransactionQueryService {
       displayName: m.displayName,
       vpa: m.vpa,
       categoryId: m.categoryId,
-      isP2p: m.isP2p,
+      autoCategorize: m.autoCategorize,
       transactionCount: txnCounts[m.id] ?? 0,
       totalSpent: txnTotals[m.id] ?? 0,
     )).toList();
@@ -259,6 +259,7 @@ class TransactionQueryService {
 
   Future<List<MockTransaction>> recentTransactions({int limit = 5}) async {
     final txns = await (_db.select(_db.transactions)
+      ..where((t) => t.transactionDate.isSmallerOrEqualValue(DateTime.now()))
       ..orderBy([(t) => OrderingTerm.desc(t.transactionDate)])
       ..limit(limit)
     ).get();
@@ -303,12 +304,19 @@ class TransactionQueryService {
     ));
   }
 
-  Future<void> updateMerchantP2p(int merchantId, bool isP2p) async {
+  Future<void> updateMerchantAutoCategorize(int merchantId, bool autoCategorize) async {
     await (_db.update(_db.merchants)
       ..where((m) => m.id.equals(merchantId))
     ).write(MerchantsCompanion(
-      isP2p: Value(isP2p),
+      autoCategorize: Value(autoCategorize),
     ));
+  }
+
+  Future<bool> getMerchantAutoCategorize(int merchantId) async {
+    final row = await (_db.select(_db.merchants)
+      ..where((m) => m.id.equals(merchantId))
+    ).getSingleOrNull();
+    return row?.autoCategorize ?? true;
   }
 
   MockTransaction _toView(Transaction t, Map<int, Merchant> merchantMap) {

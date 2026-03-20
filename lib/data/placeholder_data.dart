@@ -68,7 +68,7 @@ class MockMerchant {
   final String? displayName;
   final String? vpa;
   final int? categoryId;
-  final bool isP2p;
+  final bool autoCategorize;
   final int transactionCount;
   final int totalSpent;
 
@@ -78,7 +78,7 @@ class MockMerchant {
     this.displayName,
     this.vpa,
     this.categoryId,
-    this.isP2p = false,
+    this.autoCategorize = true,
     required this.transactionCount,
     required this.totalSpent,
   });
@@ -150,11 +150,11 @@ class PlaceholderData {
     MockMerchant(id: 11, name: 'APOLLO PHARMACY', displayName: 'Apollo Pharmacy', vpa: 'apollopharmacy@ybl', categoryId: 6, transactionCount: 4, totalSpent: 234500),
     MockMerchant(id: 12, name: 'PVR CINEMAS', displayName: 'PVR Cinemas', vpa: 'pvr@okaxis', categoryId: 5, transactionCount: 2, totalSpent: 156000),
     MockMerchant(id: 13, name: 'BIGBASKET', displayName: 'BigBasket', vpa: 'bigbasket@ybl', categoryId: 1, transactionCount: 6, totalSpent: 456000),
-    MockMerchant(id: 14, name: 'RAHUL KUMAR', vpa: '9876543210@ybl', categoryId: null, isP2p: true, transactionCount: 5, totalSpent: 1200000),
+    MockMerchant(id: 14, name: 'RAHUL KUMAR', vpa: '9876543210@ybl', categoryId: null, autoCategorize: false, transactionCount: 5, totalSpent: 1200000),
     MockMerchant(id: 15, name: 'SHELL PETROL', displayName: 'Shell', vpa: 'shell@hdfcbank', categoryId: 2, transactionCount: 4, totalSpent: 800000),
-    MockMerchant(id: 16, name: 'DMART', displayName: 'DMart', vpa: 'dmart@ybl', categoryId: null, isP2p: false, transactionCount: 1, totalSpent: 178900),
-    MockMerchant(id: 17, name: 'PRIYA SHARMA', vpa: 'priya@ybl', categoryId: null, isP2p: true, transactionCount: 1, totalSpent: 150000),
-    MockMerchant(id: 18, name: 'EMPLOYER SALARY', displayName: 'Salary', categoryId: null, isP2p: false, transactionCount: 1, totalSpent: 8500000),
+    MockMerchant(id: 16, name: 'DMART', displayName: 'DMart', vpa: 'dmart@ybl', categoryId: null, transactionCount: 1, totalSpent: 178900),
+    MockMerchant(id: 17, name: 'PRIYA SHARMA', vpa: 'priya@ybl', categoryId: null, autoCategorize: false, transactionCount: 1, totalSpent: 150000),
+    MockMerchant(id: 18, name: 'EMPLOYER SALARY', displayName: 'Salary', categoryId: null, transactionCount: 1, totalSpent: 8500000),
   ];
 
   static final transactions = <MockTransaction>[
@@ -569,7 +569,7 @@ class PlaceholderData {
     final incomplete =
         transactions.where((t) => t.merchantId == null).length;
     final uncatMerchants =
-        merchants.where((m) => m.categoryId == null && !m.isP2p).length;
+        merchants.where((m) => m.categoryId == null).length;
     return (p2p: p2p, incomplete: incomplete, merchants: uncatMerchants);
   }
 

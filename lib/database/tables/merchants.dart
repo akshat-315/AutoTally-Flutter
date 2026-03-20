@@ -8,7 +8,7 @@ class Merchants extends Table {
   TextColumn get vpa => text().unique().nullable()();
   IntColumn get categoryId => integer().nullable().references(Categories, #id)();
   TextColumn get displayName => text().nullable()();
-  BoolColumn get isP2p => boolean().withDefault(const Constant(false))();
+  BoolColumn get autoCategorize => boolean().withDefault(const Constant(true))();
   TextColumn get source => text().withDefault(const Constant('auto'))();
   BoolColumn get isConfirmed => boolean().withDefault(const Constant(false))();
   DateTimeColumn get lastSeen => dateTime().nullable()();

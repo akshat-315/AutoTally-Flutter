@@ -24,7 +24,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.e);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -32,6 +32,12 @@ class AppDatabase extends _$AppDatabase {
       await m.createAll();
       await _seedCategories();
       await _seedTemplates();
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      if (from < 2) {
+        await customStatement('ALTER TABLE merchants RENAME COLUMN is_p2p TO auto_categorize');
+        await customStatement('UPDATE merchants SET auto_categorize = CASE WHEN auto_categorize = 0 THEN 1 ELSE 0 END');
+      }
     },
   );
 

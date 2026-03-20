@@ -18,7 +18,7 @@ class MerchantDetailScreen extends StatefulWidget {
 
 class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
   late int? _categoryId;
-  late bool _isP2p;
+  late bool _autoCategorize;
   late TextEditingController _nameController;
   bool _isLoading = true;
   List<MockTransaction> _merchantTxns = [];
@@ -27,7 +27,7 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
   void initState() {
     super.initState();
     _categoryId = widget.merchant.categoryId;
-    _isP2p = widget.merchant.isP2p;
+    _autoCategorize = widget.merchant.autoCategorize;
     _nameController =
         TextEditingController(text: widget.merchant.displayName ?? widget.merchant.name);
     _loadTransactions();
@@ -188,26 +188,29 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.person_outline_rounded,
-                      size: 16, color: theme.colorScheme.onSurfaceVariant),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Person, not a shop',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(Icons.auto_fix_high_rounded,
+                        size: 16, color: theme.colorScheme.onSurfaceVariant),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        'Auto-categorize transactions',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               Switch.adaptive(
-                value: _isP2p,
+                value: _autoCategorize,
                 onChanged: (v) {
-                  setState(() => _isP2p = v);
-                  queryService.updateMerchantP2p(widget.merchant.id, v);
+                  setState(() => _autoCategorize = v);
+                  queryService.updateMerchantAutoCategorize(widget.merchant.id, v);
                 },
-                activeColor: theme.colorScheme.primary,
               ),
             ],
           ),

@@ -342,11 +342,44 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             context,
             selectedId: _categoryId,
           );
-          if (picked != null) {
-            await queryService.updateTransactionCategory(
-              widget.transaction.id, picked.id,
-            );
-            if (mounted) setState(() => _categoryId = picked.id);
+          if (picked == null || !mounted) return;
+
+          await queryService.updateTransactionCategory(
+            widget.transaction.id, picked.id,
+          );
+          setState(() => _categoryId = picked.id);
+
+          final merchantId = widget.transaction.merchantId;
+          if (merchantId == null || _merchant == null) return;
+          if (_merchant!.categoryId != null) return;
+          if (!mounted) return;
+
+          final shouldCascade = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Apply to all?'),
+              content: Text(
+                'Set "${picked.name}" as the category for all transactions from ${_merchant!.display}?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: const Text('Just this one'),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: const Text('Yes, all of them'),
+                ),
+              ],
+            ),
+          );
+
+          if (!mounted) return;
+
+          if (shouldCascade == true) {
+            await queryService.updateMerchantCategory(merchantId, picked.id);
+          } else if (shouldCascade == false) {
+            await queryService.updateMerchantAutoCategorize(merchantId, false);
           }
         },
         child: SizedBox(
@@ -548,6 +581,10 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         return 'Auto (VPA match)';
       case 'auto_merchant':
         return 'Auto (merchant default)';
+      case 'merchant':
+        return 'From merchant';
+      case 'user':
+        return 'You set this';
       case 'user_override':
         return 'You set this';
       default:

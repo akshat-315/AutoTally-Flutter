@@ -25,7 +25,6 @@ class _MerchantListScreenState extends State<MerchantListScreen> {
     FilterChipData(label: 'All'),
     FilterChipData(label: 'Categorized'),
     FilterChipData(label: 'Uncategorized'),
-    FilterChipData(label: 'P2P'),
   ];
 
   @override
@@ -76,7 +75,6 @@ class _MerchantListScreenState extends State<MerchantListScreen> {
       merchants = merchants.where((m) {
         if (_selectedFilters.contains(1) && m.categoryId == null) return false;
         if (_selectedFilters.contains(2) && m.categoryId != null) return false;
-        if (_selectedFilters.contains(3) && !m.isP2p) return false;
         return true;
       }).toList();
     }
@@ -204,39 +202,13 @@ class _MerchantRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            merchant.display,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (merchant.isP2p) ...[
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF78909C)
-                                  .withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'P2P',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                fontSize: 9,
-                                color: const Color(0xFF78909C),
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                    Text(
+                      merchant.display,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     if (merchant.vpa != null)
                       Text(
