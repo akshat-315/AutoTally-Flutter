@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:autotally_flutter/data/placeholder_data.dart';
 import 'package:autotally_flutter/theme/app_theme.dart';
-import 'package:autotally_flutter/utils/currency_formatter.dart';
 import 'package:autotally_flutter/widgets/filter_chip_row.dart';
 import 'package:autotally_flutter/widgets/month_picker.dart';
 import 'package:autotally_flutter/widgets/review_bell.dart';
@@ -125,14 +123,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     _searchFocus.unfocus();
   }
 
-  TextStyle _mono({double? fontSize, FontWeight? fontWeight, Color? color}) {
-    return GoogleFonts.spaceMono(
-      fontSize: fontSize,
-      fontWeight: fontWeight,
-      color: color,
-    );
-  }
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -184,25 +174,21 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           ],
         ],
       ),
-      body: Column(
-        children: [
-          _buildLedgerSummary(theme),
-          Expanded(
-            child: txns.isEmpty
-                ? _buildEmptyState(theme)
-                : CustomScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 8, bottom: 4),
-                          child: FilterChipRow(
-                            chips: _filterChips,
-                            selectedIndices: _selectedFilters,
-                            onSelected: _onFilterSelected,
-                          ),
-                        ),
-                      ),
+      body: txns.isEmpty
+          ? _buildEmptyState(theme)
+          : CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 8, bottom: 4),
+                    child: FilterChipRow(
+                      chips: _filterChips,
+                      selectedIndices: _selectedFilters,
+                      onSelected: _onFilterSelected,
+                    ),
+                  ),
+                ),
                       SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, sectionIndex) {
@@ -232,12 +218,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                           childCount: grouped.length,
                         ),
                       ),
-                      const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
-                    ],
-                  ),
-          ),
-        ],
-      ),
+                const SliverPadding(padding: EdgeInsets.only(bottom: 24)),
+              ],
+            ),
     );
   }
 
@@ -315,145 +298,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     );
   }
 
-  Widget _buildLedgerSummary(ThemeData theme) {
-    final ext = context.appColors;
-    final year = _currentMonth.year;
-    final month = _currentMonth.month;
-    final spent = PlaceholderData.totalSpentForMonth(year, month);
-    final received = PlaceholderData.totalReceivedForMonth(year, month);
-    final debitCount = PlaceholderData.debitCountForMonth(year, month);
-    final creditCount = PlaceholderData.creditCountForMonth(year, month);
-    final net = received - spent;
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-      decoration: BoxDecoration(
-        color: AppTheme.parchment,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.ruled, width: 0.5),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: CustomPaint(
-        painter: _LedgerRuledPainter(
-          lineColor: AppTheme.ruled.withValues(alpha: 0.3),
-          spacing: 24,
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          child: Column(
-            children: [
-              IntrinsicHeight(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'OUTFLOW',
-                            style: theme.textTheme.labelSmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              letterSpacing: 1.5,
-                              fontSize: 10,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            formatRupees(spent),
-                            style: _mono(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: ext.debit,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '$debitCount debits',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant,
-                              fontStyle: FontStyle.italic,
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      width: 0.5,
-                      color: AppTheme.ruled,
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'INFLOW',
-                              style: theme.textTheme.labelSmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                letterSpacing: 1.5,
-                                fontSize: 10,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              formatRupees(received),
-                              style: _mono(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: ext.credit,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '$creditCount credits',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                                fontStyle: FontStyle.italic,
-                                fontSize: 11,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 10),
-              Container(height: 0.5, color: AppTheme.ruled),
-              const SizedBox(height: 2),
-              Container(height: 0.5, color: AppTheme.ruled),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Net  ',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                  Text(
-                    '${net >= 0 ? '+' : ''}${formatRupees(net.abs())}',
-                    style: _mono(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: net >= 0 ? ext.credit : ext.debit,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateHeader(ThemeData theme, String label) {
+Widget _buildDateHeader(ThemeData theme, String label) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       child: Row(
@@ -535,24 +380,3 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 }
 
-class _LedgerRuledPainter extends CustomPainter {
-  final Color lineColor;
-  final double spacing;
-
-  _LedgerRuledPainter({required this.lineColor, this.spacing = 24});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = lineColor
-      ..strokeWidth = 0.5;
-
-    for (double y = spacing; y < size.height; y += spacing) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _LedgerRuledPainter oldDelegate) =>
-      lineColor != oldDelegate.lineColor || spacing != oldDelegate.spacing;
-}

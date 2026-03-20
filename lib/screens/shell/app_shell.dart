@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:autotally_flutter/screens/dashboard/dashboard_screen.dart';
 import 'package:autotally_flutter/screens/transactions/transaction_list_screen.dart';
-import 'package:autotally_flutter/screens/merchants/merchant_list_screen.dart';
+import 'package:autotally_flutter/screens/budgets/budgets_goals_screen.dart';
 import 'package:autotally_flutter/screens/settings/settings_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -26,9 +26,9 @@ class _AppShellState extends State<AppShell> {
       inactiveIcon: Icons.receipt_long_outlined,
     ),
     _TabData(
-      label: 'Merchants',
-      activeIcon: Icons.store_rounded,
-      inactiveIcon: Icons.store_outlined,
+      label: 'Budgets',
+      activeIcon: Icons.account_balance_wallet_rounded,
+      inactiveIcon: Icons.account_balance_wallet_outlined,
     ),
     _TabData(
       label: 'Settings',
@@ -45,7 +45,7 @@ class _AppShellState extends State<AppShell> {
         children: const [
           DashboardScreen(),
           TransactionListScreen(),
-          MerchantListScreen(),
+          BudgetsGoalsScreen(),
           SettingsScreen(),
         ],
       ),

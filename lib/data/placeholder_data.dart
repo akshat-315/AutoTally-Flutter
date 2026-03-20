@@ -16,6 +16,50 @@ class MockCategory {
   });
 }
 
+class MockCategoryBudget {
+  final int categoryId;
+  final int budgetAmount;
+
+  const MockCategoryBudget({
+    required this.categoryId,
+    required this.budgetAmount,
+  });
+}
+
+class MockSavingsGoal {
+  final int id;
+  final String name;
+  final String icon;
+  final int targetAmount;
+  final int savedAmount;
+  final DateTime? deadline;
+  final List<MockGoalAllocation> allocations;
+
+  const MockSavingsGoal({
+    required this.id,
+    required this.name,
+    required this.icon,
+    required this.targetAmount,
+    required this.savedAmount,
+    this.deadline,
+    this.allocations = const [],
+  });
+
+  double get progress => (savedAmount / targetAmount).clamp(0.0, 1.0);
+}
+
+class MockGoalAllocation {
+  final DateTime date;
+  final int amount;
+  final String? note;
+
+  const MockGoalAllocation({
+    required this.date,
+    required this.amount,
+    this.note,
+  });
+}
+
 class MockMerchant {
   final int id;
   final String name;
@@ -573,6 +617,96 @@ class PlaceholderData {
   static int daysInMonth(int year, int month) {
     return DateTime(year, month + 1, 0).day;
   }
+
+  static final _today = DateTime(2026, 3, 19);
+
+  static List<MockTransaction> transactionsForToday() {
+    return transactions
+        .where((t) =>
+            t.date.year == _today.year &&
+            t.date.month == _today.month &&
+            t.date.day == _today.day)
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  static int totalSpentToday() {
+    return transactionsForToday()
+        .where((t) => t.direction == 'debit')
+        .fold(0, (sum, t) => sum + t.amount);
+  }
+
+  static int transactionCountToday() {
+    return transactionsForToday().length;
+  }
+
+  static List<MockTransaction> triageTransactions() {
+    return transactions
+        .where((t) => t.categoryId == null)
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  static const int monthlyBudget = 5000000;
+
+  static const categoryBudgets = <MockCategoryBudget>[
+    MockCategoryBudget(categoryId: 1, budgetAmount: 1200000),
+    MockCategoryBudget(categoryId: 2, budgetAmount: 800000),
+    MockCategoryBudget(categoryId: 3, budgetAmount: 1000000),
+    MockCategoryBudget(categoryId: 4, budgetAmount: 500000),
+    MockCategoryBudget(categoryId: 5, budgetAmount: 300000),
+    MockCategoryBudget(categoryId: 9, budgetAmount: 200000),
+  ];
+
+  static int spentForCategory(int categoryId, int year, int month) {
+    return transactionsForMonth(year, month)
+        .where((t) =>
+            t.direction == 'debit' &&
+            t.categoryId == categoryId)
+        .fold(0, (sum, t) => sum + t.amount);
+  }
+
+  static final savingsGoals = <MockSavingsGoal>[
+    MockSavingsGoal(
+      id: 1,
+      name: 'Emergency Fund',
+      icon: '\u{1F6E1}',
+      targetAmount: 10000000,
+      savedAmount: 6500000,
+      deadline: DateTime(2026, 9, 30),
+      allocations: [
+        MockGoalAllocation(date: DateTime(2026, 1, 5), amount: 2000000, note: 'January savings'),
+        MockGoalAllocation(date: DateTime(2026, 2, 3), amount: 2000000, note: 'February savings'),
+        MockGoalAllocation(date: DateTime(2026, 3, 2), amount: 1500000, note: 'March savings'),
+        MockGoalAllocation(date: DateTime(2026, 3, 15), amount: 1000000),
+      ],
+    ),
+    MockSavingsGoal(
+      id: 2,
+      name: 'Goa Trip',
+      icon: '\u{1F3D6}',
+      targetAmount: 3000000,
+      savedAmount: 1200000,
+      deadline: DateTime(2026, 6, 15),
+      allocations: [
+        MockGoalAllocation(date: DateTime(2026, 2, 10), amount: 500000),
+        MockGoalAllocation(date: DateTime(2026, 3, 1), amount: 400000),
+        MockGoalAllocation(date: DateTime(2026, 3, 12), amount: 300000),
+      ],
+    ),
+    MockSavingsGoal(
+      id: 3,
+      name: 'New Laptop',
+      icon: '\u{1F4BB}',
+      targetAmount: 8000000,
+      savedAmount: 2000000,
+      deadline: DateTime(2026, 12, 31),
+      allocations: [
+        MockGoalAllocation(date: DateTime(2026, 1, 15), amount: 1000000),
+        MockGoalAllocation(date: DateTime(2026, 2, 15), amount: 1000000),
+      ],
+    ),
+  ];
 
   static Map<String, List<MockTransaction>> groupByDate(
       List<MockTransaction> txns) {
