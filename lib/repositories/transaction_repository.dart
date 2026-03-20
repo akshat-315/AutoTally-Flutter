@@ -16,6 +16,16 @@ class TransactionRepository {
         .getSingleOrNull();
     if (exists != null) return null;
 
+    final body = tx.rawSms.body ?? '';
+    final sender = tx.rawSms.address ?? '';
+    if (body.isNotEmpty) {
+      final contentDupe = await (_db.select(_db.transactions)
+            ..where((t) => t.rawSms.equals(body))
+            ..where((t) => t.smsSender.equals(sender)))
+          .getSingleOrNull();
+      if (contentDupe != null) return null;
+    }
+
     int? categoryId;
     String? categorySource;
     if (tx.merchantId != null) {

@@ -3,6 +3,10 @@ import 'package:autotally_flutter/database/database.dart';
 import 'package:autotally_flutter/theme/app_theme.dart';
 import 'package:autotally_flutter/repositories/app_config_repository.dart';
 import 'package:autotally_flutter/services/transaction_query_service.dart';
+import 'package:autotally_flutter/services/sms_parser/template_engine.dart';
+import 'package:autotally_flutter/services/merchant_resolver/merchant_resolver.dart';
+import 'package:autotally_flutter/services/sms_listener/sms_listener_service.dart';
+import 'package:autotally_flutter/repositories/transaction_repository.dart';
 import 'package:autotally_flutter/data/placeholder_data.dart';
 import 'package:autotally_flutter/screens/shell/app_shell.dart';
 import 'package:autotally_flutter/screens/splash/splash_screen.dart';
@@ -10,11 +14,16 @@ import 'package:autotally_flutter/screens/onboarding/onboarding_screen.dart';
 
 late AppDatabase database;
 late TransactionQueryService queryService;
+late SmsListenerService smsListener;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   database = AppDatabase();
   queryService = TransactionQueryService(database);
+  final engine = TemplateEngine(database);
+  final resolver = MerchantResolver(database);
+  final txnRepo = TransactionRepository(database);
+  smsListener = SmsListenerService(database, engine, resolver, txnRepo);
   runApp(const AutoTallyApp());
 }
 
@@ -41,14 +50,30 @@ class _AppEntry extends StatefulWidget {
   State<_AppEntry> createState() => _AppEntryState();
 }
 
-class _AppEntryState extends State<_AppEntry> {
+class _AppEntryState extends State<_AppEntry> with WidgetsBindingObserver {
   bool _showSplash = true;
   bool? _onboardingComplete;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkOnboarding();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    smsListener.stopListening();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _onboardingComplete == true) {
+      smsListener.startListening();
+      smsListener.catchUpScan();
+    }
   }
 
   Future<void> _checkOnboarding() async {
@@ -56,6 +81,7 @@ class _AppEntryState extends State<_AppEntry> {
     final complete = await config.getBool('onboarding_complete');
     if (complete) {
       await _loadCategories();
+      smsListener.startListening();
     }
     if (mounted) {
       setState(() => _onboardingComplete = complete);
@@ -79,6 +105,7 @@ class _AppEntryState extends State<_AppEntry> {
           OnboardingScreen(
             onComplete: () async {
               await _loadCategories();
+              smsListener.startListening();
               if (mounted) setState(() => _onboardingComplete = true);
             },
           ),
