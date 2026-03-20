@@ -17,8 +17,8 @@ class _AppShellState extends State<AppShell> {
   static const _tabs = [
     _TabData(
       label: 'Dashboard',
-      activeIcon: Icons.dashboard_rounded,
-      inactiveIcon: Icons.dashboard_outlined,
+      activeIcon: Icons.menu_book_rounded,
+      inactiveIcon: Icons.menu_book_outlined,
     ),
     _TabData(
       label: 'Transactions',
@@ -27,13 +27,13 @@ class _AppShellState extends State<AppShell> {
     ),
     _TabData(
       label: 'Budgets',
-      activeIcon: Icons.account_balance_wallet_rounded,
-      inactiveIcon: Icons.account_balance_wallet_outlined,
+      activeIcon: Icons.savings_rounded,
+      inactiveIcon: Icons.savings_outlined,
     ),
     _TabData(
       label: 'Analytics',
-      activeIcon: Icons.insights_rounded,
-      inactiveIcon: Icons.insights_outlined,
+      activeIcon: Icons.bar_chart_rounded,
+      inactiveIcon: Icons.bar_chart_outlined,
     ),
   ];
 

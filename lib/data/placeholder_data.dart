@@ -123,7 +123,7 @@ class MockTransaction {
 }
 
 class PlaceholderData {
-  static const categories = <MockCategory>[
+  static final categories = <MockCategory>[
     MockCategory(id: 1, name: 'Food', icon: '\u{1F354}', color: Color(0xFFFF6B35)),
     MockCategory(id: 2, name: 'Transport', icon: '\u{1F697}', color: Color(0xFF4ECDC4)),
     MockCategory(id: 3, name: 'Shopping', icon: '\u{1F6CD}', color: Color(0xFFE91E63)),
