@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:autotally_flutter/data/placeholder_data.dart';
+import 'package:autotally_flutter/main.dart';
 import 'package:autotally_flutter/theme/app_theme.dart';
 import 'package:autotally_flutter/utils/currency_formatter.dart';
 
@@ -14,13 +15,33 @@ class AnalyticsScreen extends StatefulWidget {
 }
 
 class _AnalyticsScreenState extends State<AnalyticsScreen> {
-  DateTime _selectedMonth = DateTime(2026, 3);
+  late DateTime _selectedMonth;
+  bool _isLoading = true;
+
+  int _spent = 0;
+  int _received = 0;
+  int _txCount = 0;
+  int _debitCount = 0;
+  int _creditCount = 0;
+  Map<int, int> _cumulative = {};
+  List<({MockCategory category, int total})> _categoryData = [];
+  List<({DateTime month, int spent, int income})> _trend = [];
+  List<({String name, int total, int count})> _topMerchants = [];
+  Map<int, int> _dowTotals = {};
 
   static const _shadowMedium = BoxShadow(
     color: Color(0x1A2C2416),
     blurRadius: 16,
     offset: Offset(0, 6),
   );
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _selectedMonth = DateTime(now.year, now.month);
+    _loadData();
+  }
 
   TextStyle _mono({double? fontSize, FontWeight? fontWeight, Color? color}) {
     return GoogleFonts.spaceMono(
@@ -30,21 +51,74 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  void _prevMonth() {
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    final year = _selectedMonth.year;
+    final month = _selectedMonth.month;
+
+    final results = await Future.wait([
+      queryService.monthStats(year, month),
+      queryService.cumulativeDailySpend(year, month),
+      queryService.spendByCategoryForMonth(year, month),
+      queryService.monthlyTrend(year, month),
+      queryService.topMerchantsForMonth(year, month),
+      queryService.dayOfWeekTotals(year, month),
+    ]);
+
+    if (!mounted) return;
+
+    final stats = results[0] as ({int spent, int received, int txCount, int debitCount, int creditCount});
+
     setState(() {
-      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+      _spent = stats.spent;
+      _received = stats.received;
+      _txCount = stats.txCount;
+      _debitCount = stats.debitCount;
+      _creditCount = stats.creditCount;
+      _cumulative = results[1] as Map<int, int>;
+      _categoryData = results[2] as List<({MockCategory category, int total})>;
+      _trend = results[3] as List<({DateTime month, int spent, int income})>;
+      _topMerchants = results[4] as List<({String name, int total, int count})>;
+      _dowTotals = results[5] as Map<int, int>;
+      _isLoading = false;
     });
   }
 
+  void _prevMonth() {
+    _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+    _loadData();
+  }
+
   void _nextMonth() {
-    setState(() {
-      _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
-    });
+    _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+    _loadData();
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    if (_isLoading) {
+      return Scaffold(
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(theme),
+              const SizedBox(height: 8),
+              _buildMonthSelector(theme),
+              const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: AppTheme.inkDark,
+                    strokeWidth: 2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -128,14 +202,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildMonthlySummary(ThemeData theme) {
     final ext = context.appColors;
-    final year = _selectedMonth.year;
-    final month = _selectedMonth.month;
-    final spent = PlaceholderData.totalSpentForMonth(year, month);
-    final income = PlaceholderData.totalReceivedForMonth(year, month);
+    final spent = _spent;
+    final income = _received;
     final net = income - spent;
-    final txCount = PlaceholderData.transactionCountForMonth(year, month);
-    final debitCount = PlaceholderData.debitCountForMonth(year, month);
-    final creditCount = PlaceholderData.creditCountForMonth(year, month);
+    final txCount = _txCount;
+    final debitCount = _debitCount;
+    final creditCount = _creditCount;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -295,12 +367,11 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget _buildSpendingPulse(ThemeData theme) {
     final year = _selectedMonth.year;
     final month = _selectedMonth.month;
-    final cumulative = (year == 2026 && month == 3)
-        ? PlaceholderData.cumulativeDailySpend(year, month)
-        : PlaceholderData.syntheticCumulativeDailySpend(year, month);
-    final days = PlaceholderData.daysInMonth(year, month);
+    final cumulative = _cumulative;
+    final days = DateTime(year, month + 1, 0).day;
     final budget = PlaceholderData.monthlyBudget;
-    final currentDay = (year == 2026 && month == 3) ? 19 : days;
+    final now = DateTime.now();
+    final currentDay = (year == now.year && month == now.month) ? now.day : days;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -403,9 +474,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _buildCategoryBreakdown(ThemeData theme) {
-    final year = _selectedMonth.year;
-    final month = _selectedMonth.month;
-    final data = PlaceholderData.spendByCategoryForMonth(year, month);
+    final data = _categoryData;
 
     if (data.isEmpty) {
       return _buildEmptySection(theme, 'Category Breakdown');
@@ -485,12 +554,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     int index,
   ) {
     final proportion = maxAmount > 0 ? item.total / maxAmount : 0.0;
-    final totalSpent = PlaceholderData.totalSpentForMonth(
-      _selectedMonth.year,
-      _selectedMonth.month,
-    );
-    final percentage = totalSpent > 0
-        ? (item.total / totalSpent * 100).round()
+    final percentage = _spent > 0
+        ? (item.total / _spent * 100).round()
         : 0;
 
     return Padding(
@@ -567,7 +632,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _buildMonthlyTrend(ThemeData theme) {
-    final trend = PlaceholderData.monthlyTrend();
+    final trend = _trend;
+    if (trend.isEmpty) return _buildEmptySection(theme, 'Monthly Trend');
     final maxSpent = trend.map((t) => t.spent).reduce(math.max);
 
     return Column(
@@ -631,9 +697,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _buildTopMerchants(ThemeData theme) {
-    final year = _selectedMonth.year;
-    final month = _selectedMonth.month;
-    final data = PlaceholderData.topMerchantsForMonth(year, month, limit: 5);
+    final data = _topMerchants;
 
     if (data.isEmpty) {
       return _buildEmptySection(theme, 'Top Merchants');
@@ -699,7 +763,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   Widget _buildMerchantRow(
     ThemeData theme,
-    ({MockMerchant merchant, int total, int count}) item,
+    ({String name, int total, int count}) item,
     int rank,
   ) {
     return SizedBox(
@@ -730,7 +794,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          item.merchant.display,
+                          item.name,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.onSurface,
@@ -768,9 +832,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   }
 
   Widget _buildDayOfWeekPattern(ThemeData theme) {
-    final year = _selectedMonth.year;
-    final month = _selectedMonth.month;
-    final totals = PlaceholderData.dayOfWeekTotals(year, month);
+    final totals = _dowTotals;
     final maxVal = totals.values.isEmpty ? 1 : totals.values.reduce(math.max);
 
     const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -1149,7 +1211,7 @@ class _MonthlyTrendPainter extends CustomPainter {
   final Color textColor;
   final Color valueColor;
 
-  static const _shortMonths = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar'];
+  static const _monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
   _MonthlyTrendPainter({
     required this.data,
@@ -1216,7 +1278,7 @@ class _MonthlyTrendPainter extends CustomPainter {
         );
       }
 
-      final label = i < _shortMonths.length ? _shortMonths[i] : '${item.month.month}';
+      final label = _monthNames[item.month.month - 1];
       textPainter.text = TextSpan(
         text: label,
         style: TextStyle(

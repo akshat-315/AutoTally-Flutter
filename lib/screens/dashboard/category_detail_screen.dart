@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:autotally_flutter/data/placeholder_data.dart';
+import 'package:autotally_flutter/main.dart';
 import 'package:autotally_flutter/theme/app_theme.dart';
 import 'package:autotally_flutter/utils/currency_formatter.dart';
 import 'package:autotally_flutter/widgets/month_nav_bar.dart';
@@ -24,30 +25,49 @@ class CategoryDetailScreen extends StatefulWidget {
 
 class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
   late DateTime _currentMonth;
+  bool _isLoading = true;
+  List<MockTransaction> _txns = [];
 
   @override
   void initState() {
     super.initState();
     _currentMonth = widget.initialMonth;
+    _loadData();
   }
 
-  void _goToPrevMonth() {
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    final allTxns = await queryService.transactionsForMonth(
+      _currentMonth.year, _currentMonth.month,
+    );
+    if (!mounted) return;
     setState(() {
-      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
+      _txns = allTxns
+          .where((t) =>
+              t.categoryId == widget.category.id && t.direction == 'debit')
+          .toList();
+      _isLoading = false;
     });
   }
 
+  void _goToPrevMonth() {
+    _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
+    _loadData();
+  }
+
   void _goToNextMonth() {
-    final now = DateTime(2026, 3);
+    final now = DateTime.now();
+    final nowMonth = DateTime(now.year, now.month);
     final next = DateTime(_currentMonth.year, _currentMonth.month + 1);
-    if (next.year < now.year ||
-        (next.year == now.year && next.month <= now.month)) {
-      setState(() => _currentMonth = next);
+    if (next.year < nowMonth.year ||
+        (next.year == nowMonth.year && next.month <= nowMonth.month)) {
+      _currentMonth = next;
+      _loadData();
     }
   }
 
   bool get _canGoNext {
-    final now = DateTime(2026, 3);
+    final now = DateTime.now();
     return _currentMonth.year < now.year ||
         (_currentMonth.year == now.year && _currentMonth.month < now.month);
   }
@@ -57,13 +77,8 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
     final theme = Theme.of(context);
     final ext = context.appColors;
 
-    final txns = PlaceholderData.transactionsForMonth(
-            _currentMonth.year, _currentMonth.month)
-        .where((t) =>
-            t.categoryId == widget.category.id && t.direction == 'debit')
-        .toList();
-
-    final totalSpent = txns.fold(0, (sum, t) => sum + t.amount);
+    final txns = _txns;
+    final totalSpent = txns.fold<int>(0, (sum, t) => sum + t.amount);
     final grouped = PlaceholderData.groupByDate(txns);
 
     return Scaffold(
@@ -82,7 +97,10 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
                 context,
                 selected: _currentMonth,
               );
-              if (picked != null) setState(() => _currentMonth = picked);
+              if (picked != null) {
+                _currentMonth = picked;
+                _loadData();
+              }
             },
           ),
           Padding(
@@ -107,7 +125,14 @@ class _CategoryDetailScreenState extends State<CategoryDetailScreen> {
             ),
           ),
           Expanded(
-            child: txns.isEmpty
+            child: _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(
+                      color: AppTheme.inkDark,
+                      strokeWidth: 2,
+                    ),
+                  )
+                : txns.isEmpty
                 ? Center(
                     child: Text(
                       'No ${widget.category.name} spending this month.',

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:autotally_flutter/screens/dashboard/dashboard_screen.dart';
 import 'package:autotally_flutter/screens/transactions/transaction_list_screen.dart';
-import 'package:autotally_flutter/screens/budgets/budgets_goals_screen.dart';
+import 'package:autotally_flutter/screens/merchants/merchant_list_screen.dart';
 import 'package:autotally_flutter/screens/analytics/analytics_screen.dart';
 
 class AppShell extends StatefulWidget {
@@ -27,9 +27,9 @@ class _AppShellState extends State<AppShell> {
       inactiveIcon: Icons.receipt_long_outlined,
     ),
     _TabData(
-      label: 'Budgets',
-      activeIcon: Icons.savings_rounded,
-      inactiveIcon: Icons.savings_outlined,
+      label: 'Merchants',
+      activeIcon: Icons.store_rounded,
+      inactiveIcon: Icons.store_outlined,
     ),
     _TabData(
       label: 'Analytics',
@@ -38,16 +38,23 @@ class _AppShellState extends State<AppShell> {
     ),
   ];
 
-  static const _screens = [
-    DashboardScreen(),
-    TransactionListScreen(),
-    BudgetsGoalsScreen(),
-    AnalyticsScreen(),
-  ];
+  void _switchTab(int index) {
+    setState(() {
+      _previousIndex = _currentIndex;
+      _currentIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final goingRight = _currentIndex > _previousIndex;
+
+    final screens = [
+      DashboardScreen(onSwitchTab: _switchTab),
+      const TransactionListScreen(),
+      const MerchantListScreen(),
+      const AnalyticsScreen(),
+    ];
 
     return Scaffold(
       body: AnimatedSwitcher(
@@ -76,17 +83,14 @@ class _AppShellState extends State<AppShell> {
         },
         child: KeyedSubtree(
           key: ValueKey(_currentIndex),
-          child: _screens[_currentIndex],
+          child: screens[_currentIndex],
         ),
       ),
       bottomNavigationBar: _BottomNavBar(
         currentIndex: _currentIndex,
         tabs: _tabs,
         onTabChanged: (index) {
-          setState(() {
-            _previousIndex = _currentIndex;
-            _currentIndex = index;
-          });
+          _switchTab(index);
         },
       ),
     );

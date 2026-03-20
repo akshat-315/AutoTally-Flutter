@@ -68,20 +68,24 @@ class AppDatabase extends _$AppDatabase {
     for (final entry in data.entries) {
       if (entry.key.startsWith('_')) continue;
       final bankConfig = entry.value as Map<String, dynamic>;
-      final senderKey = entry.key;
       final bankName = bankConfig['bank'] as String;
+      final senderIds = (bankConfig['sender_ids'] as List?)
+              ?.cast<String>() ??
+          [entry.key];
       final templateList = bankConfig['templates'] as List;
 
-      for (final tmpl in templateList) {
-        await into(templates).insert(
-          TemplatesCompanion.insert(
-            senderKey: senderKey,
-            bankName: bankName,
-            direction: tmpl['direction'] as String,
-            pattern: tmpl['pattern'] as String,
-            source: tmpl['source'] as String? ?? 'bundled',
-          ),
-        );
+      for (final senderId in senderIds) {
+        for (final tmpl in templateList) {
+          await into(templates).insert(
+            TemplatesCompanion.insert(
+              senderKey: senderId,
+              bankName: bankName,
+              direction: tmpl['direction'] as String,
+              pattern: tmpl['pattern'] as String,
+              source: tmpl['source'] as String? ?? 'bundled',
+            ),
+          );
+        }
       }
     }
   }

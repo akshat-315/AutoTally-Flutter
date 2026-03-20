@@ -589,7 +589,8 @@ class PlaceholderData {
   ];
 
   static String dateLabel(DateTime date) {
-    final today = DateTime(2026, 3, 19);
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
     final d = DateTime(date.year, date.month, date.day);
     if (d == today) return 'Today';
     if (d == DateTime(today.year, today.month, today.day - 1)) {

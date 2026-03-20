@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:autotally_flutter/data/placeholder_data.dart';
-import 'package:autotally_flutter/theme/app_theme.dart';
+import 'package:autotally_flutter/main.dart';
 import 'package:autotally_flutter/utils/currency_formatter.dart';
 import 'package:autotally_flutter/widgets/category_picker.dart';
 import 'package:autotally_flutter/widgets/transaction_row.dart';
@@ -20,6 +20,8 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
   late int? _categoryId;
   late bool _isP2p;
   late TextEditingController _nameController;
+  bool _isLoading = true;
+  List<MockTransaction> _merchantTxns = [];
 
   @override
   void initState() {
@@ -28,6 +30,16 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
     _isP2p = widget.merchant.isP2p;
     _nameController =
         TextEditingController(text: widget.merchant.displayName ?? widget.merchant.name);
+    _loadTransactions();
+  }
+
+  Future<void> _loadTransactions() async {
+    final txns = await queryService.transactionsForMerchant(widget.merchant.id);
+    if (!mounted) return;
+    setState(() {
+      _merchantTxns = txns;
+      _isLoading = false;
+    });
   }
 
   @override
@@ -41,10 +53,7 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
     final theme = Theme.of(context);
     final category = PlaceholderData.categoryById(_categoryId);
 
-    final merchantTxns = PlaceholderData.transactions
-        .where((t) => t.merchantId == widget.merchant.id)
-        .toList()
-      ..sort((a, b) => b.date.compareTo(a.date));
+    final merchantTxns = _merchantTxns;
 
     return Scaffold(
       appBar: AppBar(
@@ -59,7 +68,13 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
             const SizedBox(height: 16),
             _buildEditSection(theme),
             const SizedBox(height: 24),
-            _buildTransactionHistory(theme, merchantTxns),
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              )
+            else
+              _buildTransactionHistory(theme, merchantTxns),
             const SizedBox(height: 32),
           ],
         ),
@@ -134,8 +149,11 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
                 onTap: () async {
                   final picked = await showCategoryPicker(context,
                       selectedId: _categoryId);
-                  if (picked != null) {
+                  if (picked != null && mounted) {
                     setState(() => _categoryId = picked.id);
+                    await queryService.updateMerchantCategory(
+                        widget.merchant.id, picked.id);
+                    if (mounted) _loadTransactions();
                   }
                 },
                 child: Container(
@@ -185,7 +203,10 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
               ),
               Switch.adaptive(
                 value: _isP2p,
-                onChanged: (v) => setState(() => _isP2p = v),
+                onChanged: (v) {
+                  setState(() => _isP2p = v);
+                  queryService.updateMerchantP2p(widget.merchant.id, v);
+                },
                 activeColor: theme.colorScheme.primary,
               ),
             ],
@@ -234,6 +255,11 @@ class _MerchantDetailScreenState extends State<MerchantDetailScreen> {
                     color: theme.colorScheme.primary, size: 20),
                 onPressed: () {
                   FocusScope.of(context).unfocus();
+                  final name = _nameController.text.trim();
+                  if (name.isNotEmpty) {
+                    queryService.updateMerchantDisplayName(
+                        widget.merchant.id, name);
+                  }
                 },
               ),
             ),

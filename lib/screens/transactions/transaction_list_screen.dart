@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:autotally_flutter/data/placeholder_data.dart';
+import 'package:autotally_flutter/main.dart';
 import 'package:autotally_flutter/theme/app_theme.dart';
 import 'package:autotally_flutter/widgets/filter_chip_row.dart';
 import 'package:autotally_flutter/widgets/month_picker.dart';
@@ -17,14 +18,16 @@ class TransactionListScreen extends StatefulWidget {
 }
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
-  DateTime _currentMonth = DateTime(2026, 3);
+  late DateTime _currentMonth;
   String _searchQuery = '';
   bool _isSearching = false;
+  bool _isLoading = true;
+  List<MockTransaction> _monthTransactions = [];
   final Set<int> _selectedFilters = {0};
   final _searchController = TextEditingController();
   final _searchFocus = FocusNode();
 
-  static final _filterChips = <FilterChipData>[
+  List<FilterChipData> get _filterChips => <FilterChipData>[
     const FilterChipData(label: 'All'),
     const FilterChipData(label: 'Debits'),
     const FilterChipData(label: 'Credits'),
@@ -34,6 +37,26 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     const FilterChipData(label: 'Uncategorized'),
     const FilterChipData(label: 'P2P'),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _currentMonth = DateTime(now.year, now.month);
+    _loadTransactions();
+  }
+
+  Future<void> _loadTransactions() async {
+    setState(() => _isLoading = true);
+    final txns = await queryService.transactionsForMonth(
+      _currentMonth.year, _currentMonth.month,
+    );
+    if (!mounted) return;
+    setState(() {
+      _monthTransactions = txns;
+      _isLoading = false;
+    });
+  }
 
   void _onFilterSelected(int index) {
     setState(() {
@@ -60,8 +83,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   List<MockTransaction> get _filteredTransactions {
-    var txns = PlaceholderData.transactionsForMonth(
-        _currentMonth.year, _currentMonth.month);
+    var txns = List<MockTransaction>.from(_monthTransactions);
 
     if (_searchQuery.isNotEmpty) {
       txns = txns
@@ -76,36 +98,40 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       if (_selectedFilters.contains(1) && t.direction != 'debit') return false;
       if (_selectedFilters.contains(2) && t.direction != 'credit') return false;
 
-      final categoryFilters = _selectedFilters.where((i) => i >= 3 && i <= 12);
+      final catCount = PlaceholderData.categories.length;
+      final categoryFilters = _selectedFilters.where((i) => i >= 3 && i < 3 + catCount);
       if (categoryFilters.isNotEmpty) {
-        final catIds = categoryFilters.map((i) => i - 2).toSet();
+        final catIds = categoryFilters
+            .map((i) => PlaceholderData.categories[i - 3].id)
+            .toSet();
         if (!catIds.contains(t.categoryId)) return false;
       }
 
-      if (_selectedFilters.contains(13) && t.categoryId != null) return false;
-      if (_selectedFilters.contains(14) && !t.isP2p) return false;
+      if (_selectedFilters.contains(3 + catCount) && t.categoryId != null) return false;
+      if (_selectedFilters.contains(4 + catCount) && !t.isP2p) return false;
 
       return true;
     }).toList();
   }
 
   void _goToPrevMonth() {
-    setState(() {
-      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
-    });
+    _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
+    _loadTransactions();
   }
 
   void _goToNextMonth() {
-    final now = DateTime(2026, 3);
+    final now = DateTime.now();
+    final nowMonth = DateTime(now.year, now.month);
     final next = DateTime(_currentMonth.year, _currentMonth.month + 1);
-    if (next.year < now.year ||
-        (next.year == now.year && next.month <= now.month)) {
-      setState(() => _currentMonth = next);
+    if (next.year < nowMonth.year ||
+        (next.year == nowMonth.year && next.month <= nowMonth.month)) {
+      _currentMonth = next;
+      _loadTransactions();
     }
   }
 
   bool get _canGoNext {
-    final now = DateTime(2026, 3);
+    final now = DateTime.now();
     return _currentMonth.year < now.year ||
         (_currentMonth.year == now.year && _currentMonth.month < now.month);
   }
@@ -134,6 +160,19 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(title: _buildMonthTitle(theme)),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: AppTheme.inkDark,
+            strokeWidth: 2,
+          ),
+        ),
+      );
+    }
+
     final txns = _filteredTransactions;
     final grouped = PlaceholderData.groupByDate(txns);
 
@@ -178,10 +217,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       body: txns.isEmpty
           ? _buildEmptyState(theme)
           : RefreshIndicator(
-              onRefresh: () async {
-                await Future.delayed(const Duration(milliseconds: 800));
-                if (mounted) setState(() {});
-              },
+              onRefresh: _loadTransactions,
               color: AppTheme.inkDark,
               backgroundColor: AppTheme.parchment,
               displacement: 40,
@@ -257,7 +293,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           context,
           selected: _currentMonth,
         );
-        if (picked != null) setState(() => _currentMonth = picked);
+        if (picked != null) {
+          _currentMonth = picked;
+          _loadTransactions();
+        }
       },
       child: Row(
         mainAxisSize: MainAxisSize.min,

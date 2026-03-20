@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:autotally_flutter/data/placeholder_data.dart';
+import 'package:autotally_flutter/main.dart';
 import 'package:autotally_flutter/theme/app_theme.dart';
 import 'package:autotally_flutter/utils/currency_formatter.dart';
 import 'package:autotally_flutter/widgets/category_picker.dart';
@@ -22,11 +23,18 @@ class TransactionDetailScreen extends StatefulWidget {
 class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   late int? _categoryId;
   bool _smsExpanded = false;
+  MockMerchant? _merchant;
 
   @override
   void initState() {
     super.initState();
     _categoryId = widget.transaction.categoryId;
+    _loadMerchant();
+  }
+
+  Future<void> _loadMerchant() async {
+    final m = await queryService.getMerchantById(widget.transaction.merchantId);
+    if (mounted) setState(() => _merchant = m);
   }
 
   TextStyle _mono({double? fontSize, FontWeight? fontWeight, Color? color}) {
@@ -44,7 +52,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     final tx = widget.transaction;
     final isDebit = tx.direction == 'debit';
     final category = PlaceholderData.categoryById(_categoryId);
-    final merchant = PlaceholderData.merchantById(tx.merchantId);
+    final merchant = _merchant;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Transaction')),
@@ -335,7 +343,10 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             selectedId: _categoryId,
           );
           if (picked != null) {
-            setState(() => _categoryId = picked.id);
+            await queryService.updateTransactionCategory(
+              widget.transaction.id, picked.id,
+            );
+            if (mounted) setState(() => _categoryId = picked.id);
           }
         },
         child: SizedBox(

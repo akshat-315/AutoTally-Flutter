@@ -91,12 +91,15 @@ class TemplateEngine {
   TemplateEngine(this._db);
 
   Future<List<Template>> _getTemplatesForSender(String sender) async {
-    final senderUpper = sender.toUpperCase();
+    final senderUpper = sender.toUpperCase().replaceAll(RegExp(r'[\s\-]'), '');
     final allTemplates = await (_db.select(_db.templates)
           ..where((t) => t.isActive.equals(true)))
         .get();
     return allTemplates
-        .where((t) => senderUpper.contains(t.senderKey.toUpperCase()))
+        .where((t) {
+          final key = t.senderKey.toUpperCase();
+          return senderUpper.contains(key) || senderUpper.endsWith(key);
+        })
         .toList();
   }
 

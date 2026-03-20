@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:autotally_flutter/data/placeholder_data.dart';
+import 'package:autotally_flutter/main.dart';
+import 'package:autotally_flutter/theme/app_theme.dart';
 import 'package:autotally_flutter/utils/currency_formatter.dart';
 import 'package:autotally_flutter/widgets/filter_chip_row.dart';
-import 'package:autotally_flutter/widgets/review_bell.dart';
 import 'package:autotally_flutter/screens/merchants/merchant_detail_screen.dart';
 import 'package:autotally_flutter/utils/page_transitions.dart';
 
@@ -15,6 +16,8 @@ class MerchantListScreen extends StatefulWidget {
 
 class _MerchantListScreenState extends State<MerchantListScreen> {
   String _searchQuery = '';
+  bool _isLoading = true;
+  List<MockMerchant> _allMerchants = [];
   final Set<int> _selectedFilters = {0};
   final _searchController = TextEditingController();
 
@@ -24,6 +27,21 @@ class _MerchantListScreenState extends State<MerchantListScreen> {
     FilterChipData(label: 'Uncategorized'),
     FilterChipData(label: 'P2P'),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadMerchants();
+  }
+
+  Future<void> _loadMerchants() async {
+    final merchants = await queryService.getAllMerchants();
+    if (!mounted) return;
+    setState(() {
+      _allMerchants = merchants;
+      _isLoading = false;
+    });
+  }
 
   void _onFilterSelected(int index) {
     setState(() {
@@ -43,7 +61,7 @@ class _MerchantListScreenState extends State<MerchantListScreen> {
   }
 
   List<MockMerchant> get _filteredMerchants {
-    var merchants = PlaceholderData.merchants.toList();
+    var merchants = _allMerchants.toList();
 
     if (_searchQuery.isNotEmpty) {
       merchants = merchants
@@ -63,7 +81,7 @@ class _MerchantListScreenState extends State<MerchantListScreen> {
       }).toList();
     }
 
-    merchants.sort((a, b) => a.display.compareTo(b.display));
+    merchants.sort((a, b) => b.transactionCount.compareTo(a.transactionCount));
     return merchants;
   }
 
@@ -77,14 +95,19 @@ class _MerchantListScreenState extends State<MerchantListScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final merchants = _filteredMerchants;
-    final grouped = _groupAlphabetically(merchants);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Merchants'),
-        actions: const [ReviewBell()],
       ),
-      body: Column(
+      body: _isLoading
+          ? Center(
+              child: CircularProgressIndicator(
+                color: AppTheme.inkDark,
+                strokeWidth: 2,
+              ),
+            )
+          : Column(
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -116,39 +139,20 @@ class _MerchantListScreenState extends State<MerchantListScreen> {
                   )
                 : ListView.builder(
                     physics: const BouncingScrollPhysics(),
-                    itemCount: grouped.length,
-                    itemBuilder: (context, sectionIndex) {
-                      final letter = grouped.keys.elementAt(sectionIndex);
-                      final sectionMerchants = grouped[letter]!;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding:
-                                const EdgeInsets.fromLTRB(16, 16, 16, 4),
-                            child: Text(
-                              letter,
-                              style:
-                                  theme.textTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: theme.colorScheme.primary,
-                              ),
+                    itemCount: merchants.length,
+                    itemBuilder: (context, index) {
+                      final m = merchants[index];
+                      return _MerchantRow(
+                        merchant: m,
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            SlidePageRoute(
+                              child: MerchantDetailScreen(merchant: m),
                             ),
-                          ),
-                          ...sectionMerchants.map((m) => _MerchantRow(
-                                merchant: m,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    SlidePageRoute(
-                                      child:
-                                          MerchantDetailScreen(merchant: m),
-                                    ),
-                                  );
-                                },
-                              )),
-                        ],
+                          );
+                          _loadMerchants();
+                        },
                       );
                     },
                   ),
@@ -158,16 +162,6 @@ class _MerchantListScreenState extends State<MerchantListScreen> {
     );
   }
 
-  Map<String, List<MockMerchant>> _groupAlphabetically(
-      List<MockMerchant> merchants) {
-    final grouped = <String, List<MockMerchant>>{};
-    for (final m in merchants) {
-      final letter = m.display[0].toUpperCase();
-      grouped.putIfAbsent(letter, () => []).add(m);
-    }
-    return Map.fromEntries(
-        grouped.entries.toList()..sort((a, b) => a.key.compareTo(b.key)));
-  }
 }
 
 class _MerchantRow extends StatelessWidget {
